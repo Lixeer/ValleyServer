@@ -1,0 +1,10 @@
+{
+  "Name": "ChatCommand",
+  "Author": "Lixeer",
+  "Version": "1.0.0",
+  "Description": "在聊天框中输入命令执行",
+  "UniqueID": "Lixeer.ChatCommand",
+  "EntryDll": "ChatCommand.dll",
+  "MinimumApiVersion": "4.0.0",
+  "UpdateKeys": [] 
+}
