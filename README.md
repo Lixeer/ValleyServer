@@ -6,8 +6,12 @@
 
 # ValleyServer  
 星露谷物语多人服务器解决方案  
-[简体中文](README.md) | [English](README_en.md)
+[简体中文](README.md) | [English](README_en.md)  
+  
+[![visitors](https://visitor-badge.laobi.icu/badge?page_id=Lixeer.ValleyServer_sync)]() [![license](https://img.shields.io/github/license/Lixeer/ValleyServer)]() [![stars](https://img.shields.io/github/stars/Lixeer/ValleyServer)]()
 </div>
+
+
 
 ---
 
@@ -62,12 +66,24 @@
 
 | QQ 频道（版本发布） | [![QQ Channel](https://img.shields.io/badge/QQ频道-加入-blue)](https://pd.qq.com/s/7gut1do04?b=5) |
 |:-:|:-:|
-
 ---
+
 
 ## 🧰 致谢
 - [**SMAPI**](https://github.com/Pathoschild/StardewModdingAPI)：提供了游戏注入与扩展机制  
-- [社区开发者们]：感谢所有为项目贡献代码、文档与测试的玩家
+
+
+## 🧮 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Lixeer/ValleyServer&type=Date)](https://www.star-history.com/#liyihao1110/ncatbot&Date)
+
+## 🥰贡献者们
+
+<a href="https://github.com/Lixeer/ValleyServer/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Lixeer/ValleyServer"> 
+</a>
+
+</div>
 
 ---
 

@@ -7,6 +7,7 @@
 # ValleyServer  
 A Multiplayer Server Solution for Stardew Valley  
 [简体中文](README.md) | [English](README_en.md)
+[![visitors](https://visitor-badge.laobi.icu/badge?page_id=Lixeer.ValleyServer_sync)]() [![license](https://img.shields.io/github/license/Lixeer/ValleyServer)]() [![stars](https://img.shields.io/github/stars/Lixeer/ValleyServer)]()
 </div>
 
 ## 📋 Project Overview
@@ -62,7 +63,21 @@ A one-click startup package is available in our QQ groups (see below).
 
 ## 🧰 Acknowledgements
 - [**SMAPI**](https://github.com/Pathoschild/StardewModdingAPI) — for providing modding and game injection capabilities  
-- []
+
+ 
+
+
+## 🧮 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Lixeer/ValleyServer&type=Date)](https://www.star-history.com/#liyihao1110/ncatbot&Date)
+
+## 🥰 Contributors
+
+<a href="https://github.com/Lixeer/ValleyServer/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Lixeer/ValleyServer"> 
+</a>
+
+</div>
 
 ---
 
