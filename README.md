@@ -1,65 +1,78 @@
-# Stardew-Valley-Server
-星露谷多人游戏服务器解决方案/An ingenious solution about game Stardew Valley Multiplayer
+<p align="center">
+  <img src="icon.jpg" width="200" style="border-radius: 50%;" alt="logo"/>
+</p>
 
+<div align="center">
 
-[简体中文](README.md)|[English](README_en.md)
+# ValleyServer  
+星露谷物语多人服务器解决方案  
+[简体中文](README.md) | [English](README_en.md)
+</div>
 
-***
-## 🚩开始之前
-1.如果您从来没有这方面的经验，那么我们推荐你在下方链接购买服务器，并由专业人员为你服务，而不是在群里谴责群主 [高性价比服务器推荐](https://m.tb.cn/h.TxeOlTH?tk=3w1SeNmrOKB) ，在这里购买服务器后他会为你安排好一切
+---
 
-2.项目在线体验服务器(游戏版本1.6.15,ip直连):160.202.233.247
-## 🌻快速开始
-> 视频教程：[bilibili【星露谷物语开服/多人游戏服务器/三端互通/远程联机】]( https://www.bilibili.com/video/BV13VPJe6EM1/?share_source=copy_web&vd_source=dddc5d0c3c33183e95f30f7d1ccdb295)
+## 📋 项目概述
+- **项目原理**：  
+  通过自定义 `MOD` 实现农场的自动运行，例如自动睡觉、自动跳过剧情、自动关闭弹窗等功能，使游戏能够在无人值守的情况下持续进行。
 
-1.[下载发行包](docs/start/release-page_zh.md)如果需要提取码请加入下方QQ群获取(凭借star截图礼貌获取,我们是免费的,但不是屈尊的)
+- **注意事项**：  
+  本项目主要收录各类开服方案、服务器相关 `MOD`、以及用于维护无人值守服务器的 `MOD`。  
+  请不要在 `issues` 中催促开发者适配各类管理面板或容器化方案，这些需求由社区自行扩展和维护。  
+  若你拥有成熟的部署方案，欢迎通过 `PR` 提交以收录到本项目文档中。  
+  本仓库的 `issue` 仅受理与 `MOD` 功能相关的 `feature` 请求。
 
-2.解压发行包
+---
 
-3.运行发行包目录下的`run.ps1`文件
+## ✨ 功能特性
+- **支持 SMAPI**：  
+  完全兼容 `SMAPI`，可自由添加 `MOD` 使用。部分 `MOD` 可能存在兼容性问题（例如无法正常跳过剧情等），请以实际测试为准。
+  
+- **活跃的社区开发**：  
+  社区持续维护与更新，欢迎提交 `issue` 与 `PR`！  
+  相较于现有的无人值守类 `MOD`，本项目支持范围更广、更新更及时。
 
-4.根据提示继续
+---
 
-5.如遇以下提示，请输入数字键`1`并回车
-```
-Please make a deployment choice:
-1. Core desktop OpenGL drivers
-3. Install DirectX IL for redistribution only
-7. Update system-wide deployment
-8. Remove system-wide deployments (uninstall)
-9. Exit
-```
-6.而后输入数字键`9`，退出
+## 🌻 快速开始
+1. 从 `Releases` 页面下载所需的 `MOD` 压缩包  
+2. 安装 `Stardew Valley` 与 `SMAPI`  
+3. 将下载的 `MOD` 放入游戏 `Mods` 文件夹  
+4. 运行 `StardewModdingAPI` 启动游戏  
+5. ~~根据需要配置网络（FRP / DDNS / 公网 IP 等），默认端口为 `24642`，协议为 `UDP`~~
 
-7.等待游戏启动以及图形化界面出现
+> ⚙️ **特殊场景运行技巧**
+- **无 GPU 环境运行**  
+  - Windows 环境可使用 **Mesa3D**  
+  - Linux 环境可使用 **Xvfb**  
+  - 一键开服包可在 QQ 群内获取（见下方）
 
-8.选择多人合作，选择心仪的游戏模式地图等等，请记住，一定要开放多人游戏位置
+---
 
-9.进入游戏后按f9即可进入自动模式（自动模式下，机器人会响应游戏事件并确认，且机器人将在每晚8点睡觉）
+## 📚 其他教程
+- 🎥 [【星露谷物语开服 / 多人服务器 / 三端互通 / 远程联机教程】](https://www.bilibili.com/video/BV13VPJe6EM1/?share_source=copy_web&vd_source=dddc5d0c3c33183e95f30f7d1ccdb295)  
+- 🧠 [【Linux 无头模式运行教程】](https://blog.csdn.net/2401_87565228/article/details/148801625?spm=1001.2014.3001.5501)
 
-## ✨优势
-1.无需gpu，可以在大部分vps服务器中使用
+---
 
-2.无需steam登录验证,andriod，ios，pc，三端互通
+## 😘 社区支持
+### 🐧 QQ交流群
 
-3.支持mod，理论上只要配置够以及mod兼容性够好(指的是客机和主机的smapi版本不同的情况下，mod的稳定情况)，可以安装任何mod
+| QQ 群组 | [![QQ Group#3](https://img.shields.io/badge/QQ群%233-加入-blue)](https://qm.qq.com/q/vfn1YWMCRM) | [![QQ Group#2](https://img.shields.io/badge/QQ群%232-加入-blue)](https://qm.qq.com/q/KhXvEqsw8g) | [![QQ Group#1](https://img.shields.io/badge/QQ群%231-加入-blue)](https://qm.qq.com/q/Q8QaovnQWG) |
+|:-:|:-:|:-:|:-:|
 
-4.相较容易上手，并且是星露谷中文社区的较为优雅的解决方案，不会面临docker，Linux运维问题
+| QQ 频道（版本发布） | [![QQ Channel](https://img.shields.io/badge/QQ频道-加入-blue)](https://pd.qq.com/s/7gut1do04?b=5) |
+|:-:|:-:|
 
-5.自建服务器(如果你没有服务器维护经验，或者说你不知道服务器是什么，请看上面服务器推荐一栏)，更为稳定且数据更安全
+---
 
-## 😘社区
-### 🐧QQ群
+## 🧰 致谢
+- [**SMAPI**](https://github.com/Pathoschild/StardewModdingAPI)：提供了游戏注入与扩展机制  
+- [社区开发者们]：感谢所有为项目贡献代码、文档与测试的玩家
 
-[***1群1036407376(已满)***](https://qm.qq.com/q/Q8QaovnQWG)  
-[***2群1020152532***](https://qm.qq.com/q/KhXvEqsw8g)  
-[***qq频道(版本发布信息***)](https://pd.qq.com/s/7gut1do04?b=5)    
-<img src="docs/img/qq_code.jpg" width="50%" hight="50%">
+---
 
+## 💰 捐助支持
 
-## 💰Donte
-`每一笔5RMB以上的donte都会发布到广告页，每当有一个StardewValley server被运行的时候捐赠者都会被鸣谢`
-<img src="docs/img/ad_page.png" width="50%" hight="50%">
-<img src="docs/img/vx_pay.jpg" width="50%" hight="50%">
+如果你喜欢这个项目，欢迎通过以下方式支持我们的开发：
 
-
+<img src="docs/img/vx_pay.jpg" width="25%" height="25%">
