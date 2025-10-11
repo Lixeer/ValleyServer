@@ -762,7 +762,16 @@ public class ModEntry : Mod
 		}
 		List<ChatSnippet> messagetoconvert = messages[messages.Count - 1].message;
 		string actualmessage = ChatMessage.makeMessagePlaintext(messagetoconvert, true);
-		string lastFragment = actualmessage.Split(' ')[1];
+		string lastFragment;
+		try
+		{
+			lastFragment = actualmessage.Split(' ')[1];
+		}
+		catch (IndexOutOfRangeException)
+		{
+			return;
+		}
+		
 		if (lastFragment == null)
 		{
 			return;
