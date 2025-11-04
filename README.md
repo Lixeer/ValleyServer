@@ -88,7 +88,7 @@
 
 ## 🧮 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Lixeer/ValleyServer&type=Date)](https://www.star-history.com/#liyihao1110/ncatbot&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Lixeer/ValleyServer&type=Date)](https://www.star-history.com/#Lixeer/ValleyServer&Date)
 
 ## 🥰贡献者们
 
