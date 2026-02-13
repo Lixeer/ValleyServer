@@ -1,0 +1,7 @@
+<Solution>
+    <Project Path="Mods/ALOS/ALOS.csproj" />
+    <Project Path="Mods/CommandWebUI/CommandWebUI.csproj" />
+    <Project Path="Mods/ServerCMD/ServerCMD.csproj" />
+    <Project Path="Mods/ChatCommand/ChatCommand.csproj" />
+    <Project Path="Mods/ChangeServerPort/ChangeServerPort.csproj" />
+</Solution>

@@ -1,0 +1,42 @@
+name: Build and Release
+on:
+  push:
+    paths:
+      - '**.cs'  
+  pull_request:
+    paths:
+      - '**.cs'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+           id-token: write     # for attestation
+           attestations: write # for attestation
+        env:
+            RELEASE_REF: refs/heads/stable # pushes to this branch are treated as public releases
+
+        steps:
+            - name: Fetch code
+              uses: actions/checkout@v4
+              with:
+                  fetch-tags: false
+
+            - name: Add build environment
+              uses: Pathoschild/SMAPI-ModBuildWorkflow/add-build-environment@v0
+
+            - name: Set prerelease versions
+              uses: Pathoschild/SMAPI-ModBuildWorkflow/set-prerelease-versions@v0
+              if: github.ref != env.RELEASE_REF
+
+            - name: Build mods
+              run: dotnet build
+
+            - name: Run tests
+              run: dotnet test --no-build
+
+            - name: Upload release zips
+              uses: Pathoschild/SMAPI-ModBuildWorkflow/upload-release-artifacts@v0
+              with:
+                  create_attestations: ${{github.ref == env.RELEASE_REF}}
+                  create_combined_zip: ${{github.ref == env.RELEASE_REF}}
