@@ -178,7 +178,7 @@ public class ModEntry : Mod
 
     public void InvokeCommand(string command)
     {
-        Monitor.Log("InvokeCommand", LogLevel.Debug);
+        Monitor.Log($"InvokeCommand {command}", LogLevel.Debug);
         cmdinvoker.InvokeCommand(command, new string[] {});
     }
 }
