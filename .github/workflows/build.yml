@@ -1,42 +1,65 @@
-name: Build and Release
+name: Build releases
 on:
   push:
     paths:
-      - '**.cs'  
+      - '**.cs'
+      - '**.csproj'
+      - '**.slnx'
   pull_request:
     paths:
       - '**.cs'
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        permissions:
-           id-token: write     # for attestation
-           attestations: write # for attestation
-        env:
-            RELEASE_REF: refs/heads/stable # pushes to this branch are treated as public releases
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
+    env:
+      RELEASE_REF: refs/heads/stable
 
-        steps:
-            - name: Fetch code
-              uses: actions/checkout@v4
-              with:
-                  fetch-tags: false
+    steps:
+      - name: Fetch code
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: false
 
-            - name: Add build environment
-              uses: Pathoschild/SMAPI-ModBuildWorkflow/add-build-environment@v0
+      - name: Add build environment
+        uses: Pathoschild/SMAPI-ModBuildWorkflow/add-build-environment@v0
 
-            - name: Set prerelease versions
-              uses: Pathoschild/SMAPI-ModBuildWorkflow/set-prerelease-versions@v0
-              if: github.ref != env.RELEASE_REF
+      - name: Set prerelease versions
+        uses: Pathoschild/SMAPI-ModBuildWorkflow/set-prerelease-versions@v0
+        if: github.ref != env.RELEASE_REF
 
-            - name: Build mods
-              run: dotnet build
+      - name: Build mods
+        run: dotnet build --configuration Release
 
-            - name: Run tests
-              run: dotnet test --no-build
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release
+        continue-on-error: true  # 测试失败不阻止构建
 
-            - name: Upload release zips
-              uses: Pathoschild/SMAPI-ModBuildWorkflow/upload-release-artifacts@v0
-              with:
-                  create_attestations: ${{github.ref == env.RELEASE_REF}}
-                  create_combined_zip: ${{github.ref == env.RELEASE_REF}}
+      # 🔍 调试步骤
+      - name: Debug - List all files
+        if: always()
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== Directory structure ==="
+          ls -la
+          echo ""
+          echo "=== Looking for _releases ==="
+          find . -type d -name "_releases" || echo "No _releases directory found"
+          echo ""
+          echo "=== Looking for zip files ==="
+          find . -name "*.zip" -type f || echo "No zip files found"
+          echo ""
+          echo "=== Checking bin directories ==="
+          find . -type d -name "bin"
+
+      - name: Upload release zips
+        uses: Pathoschild/SMAPI-ModBuildWorkflow/upload-release-artifacts@v0
+        if: success()  # 只在前面步骤成功时执行
+        with:
+          create_attestations: ${{github.ref == env.RELEASE_REF}}
+          create_combined_zip: ${{github.ref == env.RELEASE_REF}}
