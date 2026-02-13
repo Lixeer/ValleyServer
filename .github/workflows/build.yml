@@ -154,5 +154,5 @@ jobs:
         uses: Pathoschild/SMAPI-ModBuildWorkflow/upload-release-artifacts@v0
         with:
           create_attestations: ${{github.ref == env.RELEASE_REF}}
-          create_combined_zip: "Mods-package.zip"
+          create_combined_zip: "Mods-package"   
     
