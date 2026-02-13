@@ -1,7 +1,7 @@
 {
   "Name": "CommandWebUI",
   "Author": "Lixeer",
-  "Version": "1.0.0",
+  "Version": "1.0.1",
   "Description": "在浏览器中使用SMAPI控制台",
   "UniqueID": "Lixeer.CommandWebUI",
   "EntryDll": "CommandWebUI.dll",

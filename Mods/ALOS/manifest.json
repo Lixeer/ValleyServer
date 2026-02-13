@@ -1,7 +1,7 @@
 {
   "Name": "ALOS",
   "Author": "Lixeer",
-  "Version": "1.0.5",
+  "Version": "1.0.6",
   "Description": "Always on server mod for Stardew Valley. Keep your farm running even when you're not playing!",
   "UniqueID": "Lixeer.Always_On_Server",
   "EntryDll": "ALOS.dll",
