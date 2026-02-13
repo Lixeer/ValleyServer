@@ -1,4 +1,6 @@
-﻿using StardewModdingAPI;
+﻿
+﻿using Microsoft.Xna.Framework;
+using StardewModdingAPI;
 
 namespace Always_On_Server.Framework
 {
@@ -8,10 +10,11 @@ namespace Always_On_Server.Framework
 
         public int profitmargin { get; set; } = 100;
         public int upgradeHouse { get; set; } = 0;
-        public string petname { get; set; } = "Qwerty";
+        public string petname { get; set; } = "QianWen";
         public bool farmcavechoicemushrooms { get; set; } = true;
         public bool communitycenterrun { get; set; } = true;
         public int timeOfDayToSleep { get; set; } = 2200;
+        public bool allowSleepBeforeTimeOfDayToSleep { get; set; } = false;
 
         public bool lockPlayerChests { get; set; } = true;
         public bool clientsCanPause { get; set; } = false;
@@ -37,5 +40,14 @@ namespace Always_On_Server.Framework
         public int danceOfJelliesTimeOut { get; set; } = 120;
         public int festivalOfIceTimeOut { get; set; } = 120;
 
+        /**
+         * Warp coordinates for various events during the game.
+         */
+        public Point warpCoordForFarm { get; set; } = new Point(64, 15);
+        /**
+         * Normally coordinates for the bed are hardcoded based on Farmhouse type.
+         * This allows you to override the coordinates for the bed.
+         */
+        public Point warpCoordForBed { get; set; } = new Point(0, 0);
     }
 }
