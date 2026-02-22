@@ -123,7 +123,7 @@ namespace ALOS
             {
                 this.GoToBed();
             }
-            throw new NotImplementedException();
+            
         }
 
 
