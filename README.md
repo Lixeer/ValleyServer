@@ -71,8 +71,8 @@
 ## 😘 社区支持
 ### 🐧 QQ交流群
 
-| QQ 群组 | [![QQ Group#3](https://img.shields.io/badge/QQ群%233-加入-blue)](https://qm.qq.com/q/vfn1YWMCRM) | [![QQ Group#2](https://img.shields.io/badge/QQ群%232-加入-blue)](https://qm.qq.com/q/KhXvEqsw8g) | [![QQ Group#1](https://img.shields.io/badge/QQ群%231-加入-blue)](https://qm.qq.com/q/Q8QaovnQWG) |
-|:-:|:-:|:-:|:-:|
+| QQ 群组 | [![QQ Group#3](https://img.shields.io/badge/QQ群%234-加入-blue)](https://qm.qq.com/q/XUzyb67T6C)|[![QQ Group#3](https://img.shields.io/badge/QQ群(已满)%233-加入-blue)](https://qm.qq.com/q/vfn1YWMCRM) | [![QQ Group#2](https://img.shields.io/badge/QQ群(已满)%232-加入-blue)](https://qm.qq.com/q/KhXvEqsw8g) | [![QQ Group#1](https://img.shields.io/badge/QQ群(已满)%231-加入-blue)](https://qm.qq.com/q/Q8QaovnQWG) |
+|:-:|:-:|:-:|:-:|-:|
 
 | QQ 频道（版本发布） | [![QQ Channel](https://img.shields.io/badge/QQ频道-加入-blue)](https://pd.qq.com/s/7gut1do04?b=5) |
 |:-:|:-:|
