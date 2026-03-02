@@ -2,4 +2,4 @@ bin/
 obj/
 *sln
 *.zip
-content-game/*
+oneclick-script/content-game/
