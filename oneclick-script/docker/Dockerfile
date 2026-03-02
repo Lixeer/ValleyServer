@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Shanghai
 
 RUN apt update
-RUN apt install -y tar unzip xvfb x11vnc openbox xterm
+RUN apt install -y tar unzip xvfb x11vnc openbox xterm novnc
 
 
 
