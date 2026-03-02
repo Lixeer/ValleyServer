@@ -11,6 +11,8 @@ RUN apt install -y tar unzip xvfb x11vnc openbox xterm novnc
 
 COPY content-game /content
 COPY startapp.sh /startapp.sh
+
+COPY ["Mods", "/content/Stardew Valley/Mods"]
 RUN chmod +x startapp.sh
 RUN chmod +x /content
 ENTRYPOINT  ["./startapp.sh"]
