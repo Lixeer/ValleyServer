@@ -41,13 +41,12 @@ namespace AutoPause
 
         private void SendPauseCommand(string reason)
         {
-            // 在星露谷中，直接让角色在聊天栏输入指令
-            // !cmd>alos.pause 是 ALOS 插件的专用指令
-            Game1.chatBox?.activate();
-            Game1.chatBox?.setText("!cmd>alos.pause");
-            Game1.chatBox?.chatMessage();
-            
-            this.Monitor.Log($"[AutoPause] {reason}: 已自动发送 !cmd>alos.pause", LogLevel.Info);
+            // 直接调用多玩家通信接口发送聊天/指令
+            if (Context.IsMultiplayer)
+            {
+                Game1.multiplayer.sendChatMessage(ModData.ReadWrite.Common, "!cmd>alos.pause");
+                this.Monitor.Log($"[AutoPause] {reason}: 通过网络包发送了暂停请求", LogLevel.Info);
+            }
         }
     }
 }
