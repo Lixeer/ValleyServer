@@ -3,7 +3,8 @@
     <AssemblyName>AutoPause</AssemblyName>
     <ModFolderName>AutoPause</ModFolderName>
     <Platforms>AnyCPU</Platforms>
-    <TargetFramework>net6.0</TargetFramework> <LangVersion>latest</LangVersion>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
