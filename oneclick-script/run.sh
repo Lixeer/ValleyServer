@@ -41,4 +41,4 @@ echo "===== 检查完成 ====="
 #24642 GameServer 
 
 docker build -t valley-server ./docker
-docker run --rm -p 5800:5800 -p 5900:5900 -p 29103:29103/tcp -p 24642:24642/udp valley-server --name seeya-valley-server
+docker compose -f ./docker/docker-compose.yml up -d
