@@ -14,64 +14,51 @@ namespace AutoPause
 
         public override void Entry(IModHelper helper)
         {
-            // 加载配置
+            // 加载配置，如果不存在则按默认创建
             this.Config = helper.ReadConfig<ModConfig>();
-            
-            // 监听菜单变化
+            helper.WriteConfig(this.Config);
+
             helper.Events.Display.MenuChanged += OnMenuChanged;
-            
-            this.Monitor.Log($"AutoPause (WebUI版) 已启动。目标服务器: {Config.ServerIP}:{Config.ServerPort}", LogLevel.Info);
+            this.Monitor.Log("AutoPause WebUI版已就绪。如果还报Ambiguous match，请检查是否删除了旧版DLL！", LogLevel.Info);
         }
 
         private void OnMenuChanged(object sender, MenuChangedEventArgs e)
         {
-            // 仅在客机模式生效
-            if (!Context.IsMultiplayer || Context.IsMainPlayer)
-                return;
+            if (!Context.IsMultiplayer || Context.IsMainPlayer) return;
 
-            bool hasMenu = e.NewMenu != null;
-
-            // 逻辑：打开菜单时暂停，关闭菜单时恢复（再次发送命令）
-            if (hasMenu && !_isPausedByMod)
+            if (e.NewMenu != null && !_isPausedByMod)
             {
-                TriggerWebCommand("打开菜单，请求暂停");
+                _ = TriggerWebCommand("暂停");
                 _isPausedByMod = true;
             }
-            else if (!hasMenu && _isPausedByMod)
+            else if (e.NewMenu == null && _isPausedByMod)
             {
-                TriggerWebCommand("关闭菜单，请求恢复");
+                _ = TriggerWebCommand("恢复");
                 _isPausedByMod = false;
             }
         }
 
-        private async void TriggerWebCommand(string reason)
+        private async System.Threading.Tasks.Task TriggerWebCommand(string action)
         {
             try
             {
-                // 构建请求 URL (根据 CommandWebUI 的通用格式)
-                // 格式通常为: http://IP:Port/api/execute?token=TOKEN&cmd=COMMAND
-                string url = $"http://{Config.ServerIP}:{Config.ServerPort}/api/execute" +
-                             $"?token={Config.AccessToken}" +
-                             $"&cmd={Uri.EscapeDataString(Config.Command)}";
-
-                this.Monitor.Log($"[AutoPause] {reason}: 正在发送请求...", LogLevel.Debug);
-
-                // 发送异步 GET 请求
-                var response = await httpClient.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    this.Monitor.Log($"[AutoPause] 指令发送成功: {Config.Command}", LogLevel.Info);
-                }
-                else
-                {
-                    this.Monitor.Log($"[AutoPause] 发送失败! HTTP状态码: {response.StatusCode}", LogLevel.Warn);
-                }
+                // 注意：这里完全不使用反射，只发网络请求
+                string url = $"http://{Config.ServerIP}:{Config.ServerPort}/api/execute?token={Config.AccessToken}&cmd={Config.Command}";
+                await httpClient.GetAsync(url);
+                this.Monitor.Log($"[AutoPause] 触发{action}成功", LogLevel.Info);
             }
             catch (Exception ex)
             {
-                this.Monitor.Log($"[AutoPause] 网络请求异常: {ex.Message}", LogLevel.Error);
+                this.Monitor.Log($"[AutoPause] 网络请求失败: {ex.Message}", LogLevel.Error);
             }
         }
+    }
+
+    public class ModConfig
+    {
+        public string ServerIP { get; set; } = "127.0.0.1";
+        public int ServerPort { get; set; } = 38080;
+        public string AccessToken { get; set; } = "YourTokenHere";
+        public string Command { get; set; } = "alos.pause";
     }
 }
