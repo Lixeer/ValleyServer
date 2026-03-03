@@ -1,5 +1,7 @@
 using System;
-using System.Net.Http;
+using System.Net.WebSockets;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -10,72 +12,66 @@ namespace AutoPause
     public class ModEntry : Mod
     {
         private ModConfig Config;
-        private static readonly HttpClient httpClient = new HttpClient();
         private bool _isPausedByMod = false;
 
         public override void Entry(IModHelper helper)
         {
-            // 加载配置
+            // 加载配置并确保生成文件
             this.Config = helper.ReadConfig<ModConfig>();
-
-            // 确保生成 config.json
             helper.WriteConfig(this.Config);
 
-            // 注册菜单变更事件
+            // 监听菜单变化
             helper.Events.Display.MenuChanged += this.OnMenuChanged;
 
-            this.Monitor.Log("AutoPause (WebUI版) 已启动，正在监听菜单状态。", LogLevel.Info);
+            this.Monitor.Log($"AutoPause (WebSocket版) 已启动。目标: ws://{this.Config.ServerIP}:{this.Config.ServerPort}/ws", LogLevel.Info);
         }
 
         private void OnMenuChanged(object sender, MenuChangedEventArgs e)
         {
-            // 只有客机且在联机模式下才触发
             if (!Context.IsMultiplayer || Context.IsMainPlayer)
                 return;
 
-            // e.NewMenu 不为空表示打开了新界面
             if (e.NewMenu != null && !_isPausedByMod)
             {
-                _ = this.TriggerWebCommand("暂停 (Open Menu)");
+                _ = this.TriggerWebSocketCommand("暂停");
                 _isPausedByMod = true;
             }
-            // e.NewMenu 为空表示回到了游戏主画面
             else if (e.NewMenu == null && _isPausedByMod)
             {
-                _ = this.TriggerWebCommand("恢复 (Close Menu)");
+                _ = this.TriggerWebSocketCommand("恢复");
                 _isPausedByMod = false;
             }
         }
 
-        private async Task TriggerWebCommand(string action)
+        private async Task TriggerWebSocketCommand(string action)
         {
-            if (string.IsNullOrEmpty(this.Config.AccessToken) || this.Config.AccessToken.Contains("填入"))
+            // 使用 using 确保 WebSocket 用完后正确释放
+            using (var ws = new ClientWebSocket())
             {
-                this.Monitor.Log("未配置 Token，已跳过指令发送。", LogLevel.Warn);
-                return;
-            }
-
-            try
-            {
-                // 构建接口 URL
-                string url = $"http://{this.Config.ServerIP}:{this.Config.ServerPort}/api/execute" +
-                             $"?token={this.Config.AccessToken}" +
-                             $"&cmd={Uri.EscapeDataString(this.Config.Command)}";
-
-                var response = await httpClient.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    this.Monitor.Log($"[AutoPause] {action} 指令发送成功", LogLevel.Info);
+                    // CommandWebUI 的 WebSocket 地址固定为 /ws
+                    Uri serverUri = new Uri($"ws://{this.Config.ServerIP}:{this.Config.ServerPort}/ws");
+                    
+                    // 1. 建立连接
+                    await ws.ConnectAsync(serverUri, CancellationToken.None);
+
+                    // 2. 将命令转换为字节流
+                    // 注意：因为是直接推送到控制台 Reader.PushInput，如果需要前缀请在 config 中配置好，比如 "!cmd>alos.pause" 或 "alos.pause"
+                    byte[] commandBytes = Encoding.UTF8.GetBytes(this.Config.Command);
+                    ArraySegment<byte> bytesToSend = new ArraySegment<byte>(commandBytes);
+
+                    // 3. 发送命令
+                    await ws.SendAsync(bytesToSend, WebSocketMessageType.Text, true, CancellationToken.None);
+                    this.Monitor.Log($"[AutoPause] {action} 指令 ({this.Config.Command}) 已通过 WebSocket 发送成功", LogLevel.Info);
+
+                    // 4. 正常关闭连接
+                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Command Sent", CancellationToken.None);
                 }
-                else
+                catch (Exception ex)
                 {
-                    this.Monitor.Log($"[AutoPause] 接口返回错误: {response.StatusCode}", LogLevel.Warn);
+                    this.Monitor.Log($"[AutoPause] WebSocket 发送失败: {ex.Message}", LogLevel.Error);
                 }
-            }
-            catch (Exception ex)
-            {
-                this.Monitor.Log($"[AutoPause] 网络请求失败: {ex.Message}", LogLevel.Error);
             }
         }
     }
