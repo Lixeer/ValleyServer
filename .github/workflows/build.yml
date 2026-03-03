@@ -6,7 +6,7 @@ on:
       - main
 
     paths:
-      - "mianfest.json"
+      - "manifest.json"
       - '**.cs'
       - '**.csproj'
       - '**.slnx'
