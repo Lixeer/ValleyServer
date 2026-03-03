@@ -18,34 +18,47 @@ namespace AutoPause
 
         private void OnMenuChanged(object sender, MenuChangedEventArgs e)
         {
-            // 只有在联机模式且自己是客机 (Farmhand) 时才生效
+            // 只有在联机模式且自己是客机时才生效
             if (!Context.IsMultiplayer || Context.IsMainPlayer)
                 return;
 
-            // e.NewMenu 是新打开的菜单，e.OldMenu 是关掉的菜单
             bool hasNewMenu = e.NewMenu != null;
 
             if (hasNewMenu && !_isPausedByMod)
             {
-                // 打开了菜单（如背包、箱子、对话、商店等）
-                SendPauseCommand("打开界面，请求暂停");
+                SendPauseCommand("打开界面");
                 _isPausedByMod = true;
             }
             else if (!hasNewMenu && _isPausedByMod)
             {
-                // 关闭了所有菜单回到游戏界面
-                SendPauseCommand("关闭界面，恢复游戏");
+                SendPauseCommand("关闭界面");
                 _isPausedByMod = false;
             }
         }
 
         private void SendPauseCommand(string reason)
         {
-            // 直接调用多玩家通信接口发送聊天/指令
-            if (Context.IsMultiplayer)
+            try
             {
-                Game1.multiplayer.sendChatMessage(ModData.ReadWrite.Common, "!cmd>alos.pause");
-                this.Monitor.Log($"[AutoPause] {reason}: 通过网络包发送了暂停请求", LogLevel.Info);
+                if (Game1.chatBox != null)
+                {
+                    // 使用 SMAPI 的反射功能强制调用私有方法/设置私有属性
+                    // 设置聊天文本
+                    this.Helper.Reflection.GetMethod(Game1.chatBox, "setText").Invoke("!cmd>alos.pause");
+                    
+                    // 模拟按下回车提交聊天
+                    // 在 1.6 版本中，textBoxEnter 接受一个 TextBox 参数
+                    var textBox = this.Helper.Reflection.GetField<TextBox>(Game1.chatBox, "chatBox").GetValue();
+                    if (textBox != null)
+                    {
+                        this.Helper.Reflection.GetMethod(Game1.chatBox, "textBoxEnter").Invoke(textBox);
+                        this.Monitor.Log($"[AutoPause] {reason}: 已通过反射发送 !cmd>alos.pause", LogLevel.Info);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                this.Monitor.Log($"[AutoPause] 发送指令失败: {ex.Message}", LogLevel.Error);
             }
         }
     }
