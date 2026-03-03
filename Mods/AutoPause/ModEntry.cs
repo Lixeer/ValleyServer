@@ -1,64 +1,76 @@
 using System;
+using System.Net.Http;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Menus;
 
 namespace AutoPause
 {
     public class ModEntry : Mod
     {
+        private ModConfig Config;
+        private static readonly HttpClient httpClient = new HttpClient();
         private bool _isPausedByMod = false;
 
         public override void Entry(IModHelper helper)
         {
-            // 监听菜单状态变化
+            // 加载配置
+            this.Config = helper.ReadConfig<ModConfig>();
+            
+            // 监听菜单变化
             helper.Events.Display.MenuChanged += OnMenuChanged;
+            
+            this.Monitor.Log($"AutoPause (WebUI版) 已启动。目标服务器: {Config.ServerIP}:{Config.ServerPort}", LogLevel.Info);
         }
 
         private void OnMenuChanged(object sender, MenuChangedEventArgs e)
         {
-            // 只有在联机模式且自己是客机时才生效
+            // 仅在客机模式生效
             if (!Context.IsMultiplayer || Context.IsMainPlayer)
                 return;
 
-            bool hasNewMenu = e.NewMenu != null;
+            bool hasMenu = e.NewMenu != null;
 
-            if (hasNewMenu && !_isPausedByMod)
+            // 逻辑：打开菜单时暂停，关闭菜单时恢复（再次发送命令）
+            if (hasMenu && !_isPausedByMod)
             {
-                SendPauseCommand("打开界面");
+                TriggerWebCommand("打开菜单，请求暂停");
                 _isPausedByMod = true;
             }
-            else if (!hasNewMenu && _isPausedByMod)
+            else if (!hasMenu && _isPausedByMod)
             {
-                SendPauseCommand("关闭界面");
+                TriggerWebCommand("关闭菜单，请求恢复");
                 _isPausedByMod = false;
             }
         }
 
-        private void SendPauseCommand(string reason)
+        private async void TriggerWebCommand(string reason)
         {
             try
             {
-                if (Game1.chatBox != null)
+                // 构建请求 URL (根据 CommandWebUI 的通用格式)
+                // 格式通常为: http://IP:Port/api/execute?token=TOKEN&cmd=COMMAND
+                string url = $"http://{Config.ServerIP}:{Config.ServerPort}/api/execute" +
+                             $"?token={Config.AccessToken}" +
+                             $"&cmd={Uri.EscapeDataString(Config.Command)}";
+
+                this.Monitor.Log($"[AutoPause] {reason}: 正在发送请求...", LogLevel.Debug);
+
+                // 发送异步 GET 请求
+                var response = await httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
                 {
-                    // 使用 SMAPI 的反射功能强制调用私有方法/设置私有属性
-                    // 设置聊天文本
-                    this.Helper.Reflection.GetMethod(Game1.chatBox, "setText").Invoke("!cmd>alos.pause");
-                    
-                    // 模拟按下回车提交聊天
-                    // 在 1.6 版本中，textBoxEnter 接受一个 TextBox 参数
-                    var textBox = this.Helper.Reflection.GetField<TextBox>(Game1.chatBox, "chatBox").GetValue();
-                    if (textBox != null)
-                    {
-                        this.Helper.Reflection.GetMethod(Game1.chatBox, "textBoxEnter").Invoke(textBox);
-                        this.Monitor.Log($"[AutoPause] {reason}: 已通过反射发送 !cmd>alos.pause", LogLevel.Info);
-                    }
+                    this.Monitor.Log($"[AutoPause] 指令发送成功: {Config.Command}", LogLevel.Info);
+                }
+                else
+                {
+                    this.Monitor.Log($"[AutoPause] 发送失败! HTTP状态码: {response.StatusCode}", LogLevel.Warn);
                 }
             }
             catch (Exception ex)
             {
-                this.Monitor.Log($"[AutoPause] 发送指令失败: {ex.Message}", LogLevel.Error);
+                this.Monitor.Log($"[AutoPause] 网络请求异常: {ex.Message}", LogLevel.Error);
             }
         }
     }
