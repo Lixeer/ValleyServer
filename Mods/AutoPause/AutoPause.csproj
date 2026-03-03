@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>AutoPause</AssemblyName>
+    <ModFolderName>AutoPause</ModFolderName>
+    <Platforms>AnyCPU</Platforms>
+    <TargetFramework>net6.0</TargetFramework> <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+  </ItemGroup>
+</Project>
