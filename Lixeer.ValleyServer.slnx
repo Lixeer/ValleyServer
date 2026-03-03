@@ -4,4 +4,5 @@
     <Project Path="Mods/ServerCMD/ServerCMD.csproj" />
     <Project Path="Mods/ChatCommand/ChatCommand.csproj" />
     <Project Path="Mods/ChangeServerPort/ChangeServerPort.csproj" />
+    <Project Path="Mods/AutoPause/AutoPause.csproj" />
 </Solution>
