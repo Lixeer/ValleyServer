@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -14,51 +15,68 @@ namespace AutoPause
 
         public override void Entry(IModHelper helper)
         {
-            // 加载配置，如果不存在则按默认创建
+            // 加载配置
             this.Config = helper.ReadConfig<ModConfig>();
+
+            // 确保生成 config.json
             helper.WriteConfig(this.Config);
 
-            helper.Events.Display.MenuChanged += OnMenuChanged;
-            this.Monitor.Log("AutoPause WebUI版已就绪。如果还报Ambiguous match，请检查是否删除了旧版DLL！", LogLevel.Info);
+            // 注册菜单变更事件
+            helper.Events.Display.MenuChanged += this.OnMenuChanged;
+
+            this.Monitor.Log("AutoPause (WebUI版) 已启动，正在监听菜单状态。", LogLevel.Info);
         }
 
         private void OnMenuChanged(object sender, MenuChangedEventArgs e)
         {
-            if (!Context.IsMultiplayer || Context.IsMainPlayer) return;
+            // 只有客机且在联机模式下才触发
+            if (!Context.IsMultiplayer || Context.IsMainPlayer)
+                return;
 
+            // e.NewMenu 不为空表示打开了新界面
             if (e.NewMenu != null && !_isPausedByMod)
             {
-                _ = TriggerWebCommand("暂停");
+                _ = this.TriggerWebCommand("暂停 (Open Menu)");
                 _isPausedByMod = true;
             }
+            // e.NewMenu 为空表示回到了游戏主画面
             else if (e.NewMenu == null && _isPausedByMod)
             {
-                _ = TriggerWebCommand("恢复");
+                _ = this.TriggerWebCommand("恢复 (Close Menu)");
                 _isPausedByMod = false;
             }
         }
 
-        private async System.Threading.Tasks.Task TriggerWebCommand(string action)
+        private async Task TriggerWebCommand(string action)
         {
+            if (string.IsNullOrEmpty(this.Config.AccessToken) || this.Config.AccessToken.Contains("填入"))
+            {
+                this.Monitor.Log("未配置 Token，已跳过指令发送。", LogLevel.Warn);
+                return;
+            }
+
             try
             {
-                // 注意：这里完全不使用反射，只发网络请求
-                string url = $"http://{Config.ServerIP}:{Config.ServerPort}/api/execute?token={Config.AccessToken}&cmd={Config.Command}";
-                await httpClient.GetAsync(url);
-                this.Monitor.Log($"[AutoPause] 触发{action}成功", LogLevel.Info);
+                // 构建接口 URL
+                string url = $"http://{this.Config.ServerIP}:{this.Config.ServerPort}/api/execute" +
+                             $"?token={this.Config.AccessToken}" +
+                             $"&cmd={Uri.EscapeDataString(this.Config.Command)}";
+
+                var response = await httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    this.Monitor.Log($"[AutoPause] {action} 指令发送成功", LogLevel.Info);
+                }
+                else
+                {
+                    this.Monitor.Log($"[AutoPause] 接口返回错误: {response.StatusCode}", LogLevel.Warn);
+                }
             }
             catch (Exception ex)
             {
                 this.Monitor.Log($"[AutoPause] 网络请求失败: {ex.Message}", LogLevel.Error);
             }
         }
-    }
-
-    public class ModConfig
-    {
-        public string ServerIP { get; set; } = "127.0.0.1";
-        public int ServerPort { get; set; } = 38080;
-        public string AccessToken { get; set; } = "YourTokenHere";
-        public string Command { get; set; } = "alos.pause";
     }
 }
