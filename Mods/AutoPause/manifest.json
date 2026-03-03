@@ -1,0 +1,10 @@
+{
+  "Name": "AutoPause",
+  "Author": "i-Eureka",
+  "Version": "1.0.0",
+  "Description": "当客机打开界面时自动发送暂停命令",
+  "UniqueID": "i-Eureka.AutoPause",
+  "EntryDll": "AutoPause.dll",
+  "MinimumApiVersion": "4.0.0",
+  "UpdateKeys": []
+}
