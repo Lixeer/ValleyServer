@@ -1,7 +1,10 @@
 name: Render README to Image
 
 on:
+  # 手动触发
   workflow_dispatch:
+  
+  # 当 README.md 被 push 到 main 或 master 分支时触发
   push:
     paths:
       - 'README.md'
@@ -22,19 +25,52 @@ jobs:
         with:
           node-version: '20'
       
+      # 安装中文字体（解决中文显示为方框的问题）
       - name: 安装中文字体
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk fonts-wqy-microhei
           fc-cache -fv
       
+      # 强制配置系统默认使用中文字体
+      - name: 配置系统字体优先使用中文字体
+        run: |
+          mkdir -p ~/.config/fontconfig
+          cat > ~/.config/fontconfig/fonts.conf << 'EOF'
+          <?xml version="1.0"?>
+          <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+          <fontconfig>
+            <alias>
+              <family>sans-serif</family>
+              <prefer>
+                <family>Noto Sans CJK SC</family>
+                <family>WenQuanYi Micro Hei</family>
+              </prefer>
+            </alias>
+            <alias>
+              <family>serif</family>
+              <prefer>
+                <family>Noto Serif CJK SC</family>
+                <family>WenQuanYi Micro Hei</family>
+              </prefer>
+            </alias>
+            <alias>
+              <family>monospace</family>
+              <prefer>
+                <family>Noto Sans Mono CJK SC</family>
+              </prefer>
+            </alias>
+          </fontconfig>
+          EOF
+          fc-cache -fv
+      
       - name: 安装 md-to-png 工具
         run: npm install -g md-to-png
       
-      - name: 将 README.md 渲染为 PNG（支持中文）
-        run: md-to-png README.md -o readme-preview.png --font="Noto Sans CJK SC"
+      - name: 将 README.md 渲染为 PNG
+        run: md-to-png README.md -o readme-preview.png
       
-      - name: 上传产物
+      - name: 上传产物（保留 7 天）
         uses: actions/upload-artifact@v4
         with:
           name: readme-preview
