@@ -3,3 +3,5 @@ obj/
 *sln
 *.zip
 oneclick-script/content-game/
+src/ValleyServer/farms
+*.dll
