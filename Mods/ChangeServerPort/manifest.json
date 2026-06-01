@@ -1,9 +1,0 @@
-{
-    "version": "1.0.0",
-    "name": "ChangeServerPort",
-    "description": "Change the server port of a Stardew Valley server",
-    "author": "Lixeer",
-    "UniqueID": "Lixeer.ChangeServerPort",
-    "EntryDLl":"ChangeServerPort.dll",
-    "MinimumApiVersion":"4.1.6"
-}
