@@ -75,7 +75,7 @@ A one-click startup package is available in our QQ groups (see below).
 
 ## 🧮 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Lixeer/ValleyServer&type=Date)](https://www.star-history.com/#liyihao1110/ncatbot&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=Lixeer/ValleyServer&type=Date)](https://star-history.dera.page/#liyihao1110/ncatbot&Date)
 
 ## 🥰 Contributors
 
