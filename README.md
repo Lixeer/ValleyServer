@@ -76,7 +76,7 @@
 
 ## 🧮 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Lixeer/ValleyServer&type=Date)](https://www.star-history.com/#Lixeer/ValleyServer&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=Lixeer/ValleyServer&type=Date)](https://star-history.dera.page/#Lixeer/ValleyServer&Date)
 
 ## 🥰贡献者们
 
