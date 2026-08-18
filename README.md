@@ -12,8 +12,21 @@
 ---
 
 ## 📋 项目概述
-- **项目原理**：  
-  通过自定义 `mod` 实现农场主人的自动运行，例如自动睡觉、自动跳过剧情、自动关闭弹窗等功能，使游戏能够在无人值守的情况下持续进行。并且提供稳定的容器化部署方案。
+
+ValleyServer 让 `Stardew Valley` 的农场能够在无人值守的情况下持续运行，并提供稳定的多人联机服务器方案。项目分为 **2.x** 与 **3.x** 两大主线：
+
+### 🧩 2.x —— 基于 MOD 的无人值守 + Docker 部署
+- **原理**：通过自定义 `mod`（如 `ALOS`）实现农场主人的自动运行——自动睡觉、自动跳过剧情、自动关闭弹窗等，使游戏在没有真人操作时也能持续进行。
+- **形态**：在真实的 `Stardew Valley` + `SMAPI` 客户端之上运行 MOD，并搭配稳定的容器化部署方案（`Docker`）提供开箱即用的服务器。
+- **适用**：当前最成熟、开箱即用的方案，代码主要位于 `Mods/` 目录，部署方式见 [`oneclick-script` 文档](oneclick-script/cookbook.md)。
+- **版本**：以 `v2.x` 形式发布。
+
+### 🧬 3.x —— 反编译 / mock 协议服务器（实验性）
+- **原理**：不依赖真实游戏客户端，直接**加载反编译的游戏程序集，用反射与 mock** 构建一个无 GUI 的原生无头服务器，代码位于 [src/ValleyServer](src/ValleyServer)。
+- **状态**：实验性。目前仍依赖下载的 `Content` 资源，且缺少完整的游戏逻辑支撑（农业、季节、NPC、任务、节日等），详见下方 TODO。
+- **版本**：以 `v3.x` 形式发布。
+
+> 💡 完整的 2.x / 3.x 对比与选型建议见 [版本指南](docs/version-guide.md)。
 
 
 
@@ -31,10 +44,14 @@
 - **集成控制面板**：  
   在最新版的docker部署方案中，我们提供了一个简单美观的WebUI和WebVNC，更好的控制和管理服务器
 
+- **3.x 原生协议服务器**：  
+  3.x 还在探索不依赖真实游戏客户端的反编译/mock 协议服务器（代码位于 [src/ValleyServer](src/ValleyServer)），目前处于实验阶段，详见下方 TODO。
+
 ---
 
 ## 🌻 快速开始
-  - [Docker for ValleyServer](oneclick-script/cookbook.md)
+  - [Docker for ValleyServer（2.x 推荐）](oneclick-script/cookbook.md)
+  - 3.x 反编译/mock 服务器仍处于实验阶段，暂不建议生产使用。
   
   
 
@@ -71,8 +88,8 @@
 - [**Stardew-Valley-Mutiplayer-docker**](https://github.com/printfuck/stardew-multiplayer-docker)：星露谷物语多人游戏服务器docker部署
 
 ## 🎯 TODO
-- 编写真正的协议端而非依赖无头服务器 (**我们正在编写一个`agent`用来分析星露谷源码，总结协议文档，你可以在qq群或者`issue`中加入我们**)
-- 暂时不再考虑扩展的已有mod，但是希望有其他的联机玩法，例如类似`HayDay`的联网但不联机功能
+- **3.x 主线**：编写真正的协议端而非依赖无头服务器（**我们正在编写一个 `agent` 用来分析星露谷源码，总结协议文档，你可以在 qq 群或者 `issue` 中加入我们**）。当前 [src/ValleyServer](src/ValleyServer) 通过反编译与 mock 游戏程序集实现无头服务器，但仍依赖 `Content` 资源、缺少完整的游戏逻辑（如农业、季节、NPC）支撑。
+- **2.x 主线**：暂时不再考虑扩展已有的 mod，但是希望有其他的联机玩法，例如类似 `HayDay` 的联网但不联机功能。基于 MOD 的无人值守方案将作为长期稳定的默认路线持续维护。
 
 
 ## 🧮 Star History
