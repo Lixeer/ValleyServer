@@ -3,5 +3,5 @@ obj/
 *sln
 *.zip
 oneclick-script/content-game/
-src/ValleyServer/saved_farm/*.xml
+src/ValleyServer/saved_farmhands/*.xml
 src/ValleyServer/Content/*
