@@ -35,7 +35,7 @@ ValleyServer 目前存在 **2.x** 与 **3.x** 两条主线，二者在**实现�
 - 直接基于 `Lidgren.Network` 实现星露谷的信息层协议（握手、传送、广播等）
 
 ### 代码位置
-- 服务器源码：[`src/ValleyServer`](../src/ValleyServer)
+- 服务器源码：[`src/ValleyServer`](../src/ValleyServer)（[目录 README](../src/ValleyServer/README.md)）
   - `Program.cs` —— 主程序与消息循环
   - `ValleyServer.csproj` —— 项目配置
   - `deps/` —— 引用的反编译程序集（`Stardew Valley.dll`、`StardewValley.GameData.dll`、`MonoGame.Framework.dll`、`xTile.dll`、`Lidgren.Network.dll`、`liblwjgl_lz4.dll`）

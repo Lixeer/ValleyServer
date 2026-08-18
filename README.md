@@ -22,7 +22,7 @@ ValleyServer 让 `Stardew Valley` 的农场能够在无人值守的情况下持�
 - **版本**：以 `v2.x` 形式发布。
 
 ### 🧬 3.x —— 反编译 / mock 协议服务器（实验性）
-- **原理**：不依赖真实游戏客户端，直接**加载反编译的游戏程序集，用反射与 mock** 构建一个无 GUI 的原生无头服务器，代码位于 [src/ValleyServer](src/ValleyServer)。
+- **原理**：不依赖真实游戏客户端，直接**加载反编译的游戏程序集，用反射与 mock** 构建一个无 GUI 的原生无头服务器，代码位于 [src/ValleyServer](src/ValleyServer)（[README](src/ValleyServer/README.md)）。
 - **状态**：实验性。目前仍依赖下载的 `Content` 资源，且缺少完整的游戏逻辑支撑（农业、季节、NPC、任务、节日等），详见下方 TODO。
 - **版本**：以 `v3.x` 形式发布。
 

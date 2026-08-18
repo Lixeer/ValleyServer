@@ -21,7 +21,7 @@ ValleyServer keeps your `Stardew Valley` farm running unattended and provides a 
 - **Versioning**: released as `v2.x`.
 
 ### 🧬 3.x — Reverse-Engineered / Mock Protocol Server (Experimental)
-- **Principle**: A standalone headless server (code under [`src/ValleyServer`](src/ValleyServer)) that loads the decompiled game assemblies and uses reflection/mocking to run without a full game client or GUI.
+- **Principle**: A standalone headless server (code under [`src/ValleyServer`](src/ValleyServer) — [README](src/ValleyServer/README.md)) that loads the decompiled game assemblies and uses reflection/mocking to run without a full game client or GUI.
 - **Status**: Experimental. It currently still depends on the downloaded `Content` assets and lacks complete game logic (farming, seasons, NPCs, etc.). See TODO below.
 - **Versioning**: released as `v3.x`.
 
