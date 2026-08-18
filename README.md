@@ -43,17 +43,18 @@
 | MOD 名称 | 功能描述 |文档链接|
 |:-:|:-|:-|
 | `ALOS (Always On Server)` | 无人值守运行游戏（自动睡觉、跳过剧情、自动操作） | [➡️](Mods/ALOS/README.md)
-| `ServerCmd` | 在无头服务器环境下执行控制指令 | -
+| `ServerCMD` | 在无头服务器环境下执行控制指令 | [➡️](Mods/ServerCMD/README.md)
 | `ChatCommand` | 允许在游戏聊天框中执行控制台指令 | [➡️](Mods/ChatCommand/README.md)
-| `CommandWebUI` | 在web浏览器中使用smapi控制台 | [➡️](Mods/CommandWebUI/README.md)|
+| `CommandWebUI` | 在web浏览器中使用smapi控制台 | [➡️](Mods/CommandWebUI/README.md)
+| `ChangeServerPort` | 修改服务器端口 | [➡️](Mods/ChangeServerPort/README.md)|
 
->在`realase`页中,会打包其他作者的Mod(与本项目搭配使用更佳的Mods)，可根据`manifest.json`中的信息找到对应的仓库/作者并且为他们提供支持
+>在`release`页中,会打包其他作者的Mod(与本项目搭配使用更佳的Mods)，可根据`manifest.json`中的信息找到对应的仓库/作者并且为他们提供支持
 
 
 ## 😘 社区支持
 ### 🐧 QQ交流群
 
-| QQ 群组 | [![QQ Group#3](https://img.shields.io/badge/QQ群%234-加入-blue)](https://qm.qq.com/q/XUzyb67T6C)|[![QQ Group#3](https://img.shields.io/badge/QQ群(已满)%233-加入-blue)](https://qm.qq.com/q/vfn1YWMCRM) | [![QQ Group#2](https://img.shields.io/badge/QQ群(已满)%232-加入-blue)](https://qm.qq.com/q/KhXvEqsw8g) | [![QQ Group#1](https://img.shields.io/badge/QQ群(已满)%231-加入-blue)](https://qm.qq.com/q/Q8QaovnQWG) |
+| QQ 群组 | [![QQ群#4](https://img.shields.io/badge/QQ群%234-加入-blue)](https://qm.qq.com/q/XUzyb67T6C)|[![QQ群#3](https://img.shields.io/badge/QQ群(已满)%233-加入-blue)](https://qm.qq.com/q/vfn1YWMCRM) | [![QQ群#2](https://img.shields.io/badge/QQ群(已满)%232-加入-blue)](https://qm.qq.com/q/KhXvEqsw8g) | [![QQ群#1](https://img.shields.io/badge/QQ群(已满)%231-加入-blue)](https://qm.qq.com/q/Q8QaovnQWG) |
 |:-:|:-:|:-:|:-:|-:|
 
 | QQ 频道（版本发布） | [![QQ Channel](https://img.shields.io/badge/QQ频道-加入-blue)](https://pd.qq.com/s/7gut1do04?b=5) |

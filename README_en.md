@@ -7,7 +7,7 @@
 # ValleyServer  
 A Multiplayer Server Solution for Stardew Valley  
 [简体中文](README.md) | [English](README_en.md)
-[![visitors](https://visitor-badge.laobi.icu/badge?page_id=Lixeer.ValleyServer_sync)]() [![license](https://img.shields.io/github/license/Lixeer/ValleyServer)]() [![stars](https://img.shields.io/github/stars/Lixeer/ValleyServer)]()
+[![visitors](https://visitor-badge.laobi.icu/badge?page_id=Lixeer.ValleyServer_sync)](https://github.com/Lixeer/ValleyServer) [![license](https://img.shields.io/github/license/Lixeer/ValleyServer)](https://github.com/Lixeer/ValleyServer/blob/main/LICENSE) [![stars](https://img.shields.io/github/stars/Lixeer/ValleyServer)](https://github.com/Lixeer/ValleyServer/stargazers)
 </div>
 
 ## 📋 Project Overview

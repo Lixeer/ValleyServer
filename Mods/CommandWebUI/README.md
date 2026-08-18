@@ -10,9 +10,9 @@ namespace CommandWebUI
     public class ModConfig
     {
         public int Port = 29103;
-        public string AccessToken = "24641aabcd";
+        public string AccessToken = "set_your_own_token_please";
         public string IndexPage = "index-sv2.html";
-        public string LoginPage = "Login.html";
+        public string LoginPage = "login.html";
     }
 }
 ```
@@ -20,9 +20,9 @@ namespace CommandWebUI
 | 配置项名称 | 配置项作用说明 | 默认值 |
 |-----------|---------------|--------|
 | Port | Web UI 服务器监听端口号 | 29103 |
-| AccessToken | Web UI 访问令牌（用于身份验证） | 24641aabcd |
+| AccessToken | Web UI 访问令牌（用于身份验证） | set_your_own_token_please |
 | IndexPage | Web UI 主页文件名 | index-sv2.html |
-| LoginPage | Web UI 登录页面文件名 | Login.html |
+| LoginPage | Web UI 登录页面文件名 | login.html |
 
 >`IndexPage`和`LoginPage`都可以通过自己编写达到自定义风格的目的。
 

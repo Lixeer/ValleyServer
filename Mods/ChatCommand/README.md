@@ -11,5 +11,5 @@
 2. 按T打开游戏内聊天框，并输入 `!cmd>alos.go_to_sleep` 
    
 ## ⚠️
-e.Both host and farm helper can use this function, but only install in host.
-c.本Mod只需安装在农场主人端，安装完成后农场主人和农场帮手都可以使用这个Mods 
+- Both host and farm helper can use this function, but only install in host.
+- 本Mod只需安装在农场主人端，安装完成后农场主人和农场帮手都可以使用这个Mod

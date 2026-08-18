@@ -1,4 +1,4 @@
-## ALOS (Alway On Server) 食用文档
+## ALOS (Always On Server) 食用文档
 
 ### 😀支持与预支持的功能
 | 功能描述                           | 支持情况 |
@@ -43,7 +43,7 @@
   "serverHotKey": "F9",
   "profitmargin": 100,
   "upgradeHouse": 0,
-  "petname": "Perkele",
+  "petname": "QianWen",
   "farmcavechoicemushrooms": true,
   "communitycenterrun": true,
   "timeOfDayToSleep": 2200,
@@ -83,7 +83,7 @@
 | serverHotKey | Mod启/停热键设置 | F9 |
 | profitmargin | 利润率设置 | 100 |
 | upgradeHouse | 房屋升级等级 | 0 |
-| petname | 宠物名称 | Perkele |
+| petname | 宠物名称 | QianWen |
 | farmcavechoicemushrooms | 农场洞穴选择蘑菇（true为蘑菇，false为水果） | true |
 | communitycenterrun | 是否启用社区中心运行模式 | true |
 | timeOfDayToSleep | 每日睡觉时间（24小时制，`2200`表示`22:00`），如果希望早上九点睡觉请填写`0900`，或者使用`alos.go_to_sleep` | 2200 |
