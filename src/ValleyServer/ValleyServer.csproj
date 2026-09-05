@@ -34,10 +34,23 @@
     </Reference>
   </ItemGroup>
 
+  <!--
+    Stardew Valley.dll is a direct file reference, so MSBuild can't reliably discover
+    all of its managed and native runtime dependencies. Ship every non-reference DLL
+    from deps beside the server executable; this keeps published builds independent
+    from VALLEY_GAME_PATH and from a local Stardew Valley installation.
+  -->
   <ItemGroup>
-    <None Include="deps\liblwjgl_lz4.dll">
-      <Link>liblwjgl_lz4.dll</Link>
+    <None Include="deps\*.dll"
+          Exclude="deps\Lidgren.Network.dll;deps\MonoGame.Framework.dll;deps\xTile.dll;deps\StardewValley.GameData.dll;deps\Stardew Valley.dll">
+      <Link>%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Include="deps\*.so;deps\*.so.*">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
   </ItemGroup>
 
