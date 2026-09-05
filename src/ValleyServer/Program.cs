@@ -131,9 +131,12 @@ namespace HeadlessServer
         {
             Console.WriteLine("Starting Headless Stardew Valley Server (New Farmhand Customization Stage)...");
 
-            // Load native liblwjgl_lz4.dll
+            // Load the platform-specific LZ4 native library bundled beside the server.
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string nativeDllPath = Path.Combine(baseDir, "liblwjgl_lz4.dll");
+            string nativeLibraryName = OperatingSystem.IsWindows()
+                ? "liblwjgl_lz4.dll"
+                : "liblwjgl_lz4.so";
+            string nativeDllPath = Path.Combine(baseDir, nativeLibraryName);
             string? gamePath = Environment.GetEnvironmentVariable("VALLEY_GAME_PATH");
             // Also support the common packaged/container layout used by this checkout;
             // Stardew's managed dependencies live beside the game assembly there.
@@ -145,7 +148,7 @@ namespace HeadlessServer
             }
             if (!File.Exists(nativeDllPath) && !string.IsNullOrWhiteSpace(gamePath))
             {
-                nativeDllPath = Path.Combine(gamePath, "liblwjgl_lz4.dll");
+                nativeDllPath = Path.Combine(gamePath, nativeLibraryName);
             }
 
             if (File.Exists(nativeDllPath))
@@ -153,16 +156,16 @@ namespace HeadlessServer
                 try
                 {
                     System.Runtime.InteropServices.NativeLibrary.Load(nativeDllPath);
-                    Console.WriteLine($"Successfully loaded native DLL: {nativeDllPath}");
+                    Console.WriteLine($"Successfully loaded native library: {nativeDllPath}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error loading native DLL: {ex.Message}");
+                    Console.WriteLine($"Error loading native library: {ex.Message}");
                 }
             }
             else
             {
-                Console.WriteLine("Warning: liblwjgl_lz4.dll not found locally or in default Steam path.");
+                Console.WriteLine($"Warning: {nativeLibraryName} not found beside the server.");
             }
 
             // 1. Set up dependency resolution for referenced assemblies (e.g. Stardew Valley.dll)
@@ -603,10 +606,17 @@ namespace HeadlessServer
             Console.CancelKeyPress += (_, e) =>
             {
                 e.Cancel = true;
-                shutdown.Cancel();
-                Console.WriteLine("Shutdown requested; finishing queued messages...");
+                if (!shutdown.IsCancellationRequested)
+                {
+                    shutdown.Cancel();
+                    Console.WriteLine("Shutdown requested; finishing queued messages...");
+                }
             };
-            AppDomain.CurrentDomain.ProcessExit += (_, _) => shutdown.Cancel();
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+            {
+                if (!shutdown.IsCancellationRequested)
+                    shutdown.Cancel();
+            };
 
             while (!shutdown.IsCancellationRequested)
             {

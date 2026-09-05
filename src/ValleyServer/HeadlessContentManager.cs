@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using StardewValley;
 
 namespace HeadlessServer
@@ -61,28 +62,44 @@ namespace HeadlessServer
             return new HeadlessContentManager(base.ServiceProvider, base.RootDirectory);
         }
 
-        protected override Stream OpenStream(string assetName)
+        private string ResolveAssetPath(string assetName)
         {
             string suffix = assetName;
-            if (suffix.StartsWith("Content/", StringComparison.OrdinalIgnoreCase))
-            {
-                suffix = suffix.Substring(8);
-            }
-            else if (suffix.StartsWith("Content\\", StringComparison.OrdinalIgnoreCase))
+            if (suffix.StartsWith("Content/", StringComparison.OrdinalIgnoreCase) ||
+                suffix.StartsWith("Content\\", StringComparison.OrdinalIgnoreCase))
             {
                 suffix = suffix.Substring(8);
             }
 
-            string path = Path.Combine(_CachedContentRoot, suffix);
-            if (!File.Exists(path))
+            // Game asset names are Windows-style even when the server runs on Linux.
+            // A backslash is a legal filename character on Unix, so Path.Combine alone
+            // would look for e.g. "Content/Data\\Objects" instead of "Data/Objects.xnb".
+            suffix = suffix.Replace('\\', Path.DirectorySeparatorChar)
+                           .Replace('/', Path.DirectorySeparatorChar)
+                           .TrimStart(Path.DirectorySeparatorChar);
+
+            string path = Path.GetFullPath(Path.Combine(_CachedContentRoot, suffix));
+            string root = Path.GetFullPath(_CachedContentRoot)
+                .TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            StringComparison pathComparison = OperatingSystem.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+            if (!path.StartsWith(root, pathComparison))
             {
-                if (File.Exists(path + ".xnb"))
-                {
-                    path += ".xnb";
-                }
+                throw new ContentLoadException($"Asset path escapes the Content directory: '{assetName}'.");
             }
 
-            return File.OpenRead(path);
+            if (!File.Exists(path) && File.Exists(path + ".xnb"))
+            {
+                path += ".xnb";
+            }
+
+            return path;
+        }
+
+        protected override Stream OpenStream(string assetName)
+        {
+            return File.OpenRead(ResolveAssetPath(assetName));
         }
 
         private static T CreateHeadlessAsset<T>()
@@ -156,23 +173,14 @@ namespace HeadlessServer
             {
             }
 
-            string suffix = assetName;
-            if (suffix.StartsWith("Content/", StringComparison.OrdinalIgnoreCase))
+            try
             {
-                suffix = suffix.Substring(8);
+                return File.Exists(ResolveAssetPath(assetName));
             }
-            else if (suffix.StartsWith("Content\\", StringComparison.OrdinalIgnoreCase))
+            catch (ContentLoadException)
             {
-                suffix = suffix.Substring(8);
+                return false;
             }
-
-            string path = Path.Combine(_CachedContentRoot, suffix);
-            if (File.Exists(path) || File.Exists(path + ".xnb"))
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }
