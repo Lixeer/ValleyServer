@@ -1,4 +1,5 @@
-![ValleyServer](https://socialify.git.ci/Lixeer/ValleyServer/image?description=1&font=KoHo&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2FLixeer%2FValleyServer%2Fblob%2Fmain%2Ficon.jpg%3Fraw%3Dtrue&name=1&owner=1&pattern=Brick+Wall&pulls=1&stargazers=1&theme=Light)
+![valleyserver](https://socialify.git.ci/Lixeer/valleyserver/image?description=1&font=KoHo&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2FLixeer%2FValleyServer%2Fblob%2Fmain%2Ficon.jpg%3Fraw%3Dtrue&name=1&owner=1&pattern=Signal&pulls=1&stargazers=1&theme=Light)
+
 <div align="center">
 
 
