@@ -613,6 +613,9 @@ namespace HeadlessServer
             RunDebrisSelfTest(farm);
 
             // 5. Message loop. Ctrl+C/console shutdown stops accepting work cleanly.
+            RegisterBuiltInCommands();
+            ConsoleCommandReader.Start();
+
             using var shutdown = new CancellationTokenSource();
             Console.CancelKeyPress += (_, e) =>
             {
@@ -1030,6 +1033,10 @@ namespace HeadlessServer
                         server.Recycle(inc);
                     }
                 }
+
+                // Execute operator commands before advancing the tick, so a command sees
+                // the state left by the messages processed just above.
+                PumpConsoleCommands();
 
                 long currentTime = stopwatch.ElapsedMilliseconds;
                 if (currentTime - lastTickTime >= msPerTick)
