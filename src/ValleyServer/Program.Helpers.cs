@@ -518,24 +518,6 @@ namespace HeadlessServer
             Console.WriteLine("[HeadlessNewDay] Started vanilla overnight coroutine on background thread.");
         }
 
-        private static int GetPort(string[] args)
-        {
-            const int defaultPort = 24642;
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (!string.Equals(args[i], "--port", StringComparison.OrdinalIgnoreCase) || i + 1 >= args.Length)
-                    continue;
-
-                if (int.TryParse(args[i + 1], out int port) && port is >= 1024 and <= 65535)
-                    return port;
-
-                Console.WriteLine($"Warning: invalid --port value '{args[i + 1]}'; using {defaultPort}.");
-                break;
-            }
-
-            return defaultPort;
-        }
-
         private static string savedFarmhandsPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "saved_farmhands");
         private static HashSet<long> savedFarmerIds = new HashSet<long>();
         // The authoritative catalog of every farmhand that has ever been created/saved,

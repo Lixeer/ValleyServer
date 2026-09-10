@@ -42,11 +42,13 @@ namespace HeadlessServer
         /// Reads the configuration file, applies overrides, validates the result, and
         /// publishes it through <see cref="ServerConfig.Current"/>.
         /// </summary>
+        /// <param name="args">Command line arguments; these win over the file.</param>
         /// <returns>The effective configuration.</returns>
-        public static ServerConfig Load()
+        public static ServerConfig Load(string[] args)
         {
             ServerConfig config = LoadOrCreate(ConfigPath);
             ApplyEnvironmentOverrides(config);
+            ApplyCommandLineOverrides(config, args);
             Normalize(config);
             Validate(config);
             ServerConfig.Current = config;
@@ -103,6 +105,35 @@ namespace HeadlessServer
             if (!string.IsNullOrWhiteSpace(contentPath))
             {
                 config.Paths.ContentPath = contentPath!;
+            }
+        }
+
+        /// <summary>
+        /// Applies command line arguments. They win over both the file and the
+        /// environment so a one-off launch can override a deployed configuration.
+        /// </summary>
+        private static void ApplyCommandLineOverrides(ServerConfig config, string[] args)
+        {
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (!string.Equals(args[i], "--port", StringComparison.OrdinalIgnoreCase) || i + 1 >= args.Length)
+                {
+                    continue;
+                }
+
+                if (!int.TryParse(args[i + 1], out int port))
+                {
+                    Console.WriteLine($"[Config] Ignoring --port: '{args[i + 1]}' is not a number; keeping {config.Network.Port}.");
+                    return;
+                }
+                if (port < 1024 || port > 65535)
+                {
+                    Console.WriteLine($"[Config] Ignoring --port {port}: outside [1024, 65535]; keeping {config.Network.Port}.");
+                    return;
+                }
+
+                config.Network.Port = port;
+                return;
             }
         }
 

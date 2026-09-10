@@ -133,7 +133,7 @@ namespace HeadlessServer
 
             // Resolve the effective configuration before any game state is mocked: the
             // content manager and every world/network setting below read from it.
-            ConfigLoader.Load();
+            ConfigLoader.Load(args);
 
             // Load the platform-specific LZ4 native library bundled beside the server.
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -579,15 +579,16 @@ namespace HeadlessServer
             Console.WriteLine("Game1 static fields mocked successfully!");
 
             // 4. Initialize Lidgren NetServer
+            ServerConfig.NetworkSection networkConfig = ServerConfig.Current.Network;
             NetPeerConfiguration config = new NetPeerConfiguration("StardewValley");
             config.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
             config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
-            config.Port = GetPort(args);
+            config.Port = networkConfig.Port;
             Console.WriteLine($"Using listen port {config.Port} (client config must use the same port).");
-            config.ConnectionTimeout = 30f;
-            config.PingInterval = 5f;
-            config.MaximumConnections = 8 * 2;
-            config.MaximumTransmissionUnit = 1200;
+            config.ConnectionTimeout = networkConfig.ConnectionTimeoutSeconds;
+            config.PingInterval = networkConfig.PingIntervalSeconds;
+            config.MaximumConnections = networkConfig.MaxConnections;
+            config.MaximumTransmissionUnit = networkConfig.MaximumTransmissionUnit;
 
             NetServer server = new NetServer(config);
             server.Start();
