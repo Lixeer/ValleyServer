@@ -302,14 +302,19 @@ namespace HeadlessServer
             if (locationsField != null)
                 locationsField.SetValue(gameInstance, locList);
 
-            Game1.whichFarm = 0;
-            Game1.uniqueIDForThisGame = (ulong)(DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond);
+            ServerConfig.WorldSection worldConfig = ServerConfig.Current.World;
+            Game1.whichFarm = worldConfig.FarmType;
+            // A configured seed makes the generated world reproducible; 0 keeps the
+            // historical behaviour of deriving one from the current time.
+            Game1.uniqueIDForThisGame = worldConfig.Seed != 0
+                ? worldConfig.Seed
+                : (ulong)(DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond);
             Game1.season = Season.Spring;
             Game1.dayOfMonth = 1;
             Game1.year = 1;
             // Farmhands need real cabin interiors and beds for spawn and pass-out recovery.
-            Game1.startingCabins = 4;
-            Game1.cabinsSeparate = false;
+            Game1.startingCabins = worldConfig.StartingCabins;
+            Game1.cabinsSeparate = worldConfig.CabinsSeparate;
             Game1.random = new Random(unchecked((int)Game1.uniqueIDForThisGame));
             // Debris.InitializeChunks draws chunk velocities through this RNG. The vanilla
             // constructor initializes it, but this headless instance bypasses that path.
@@ -391,8 +396,10 @@ namespace HeadlessServer
 
             // Create host player
             var host = new Farmer();
-            host.Name = "Host";
-            host.farmName.Value = "HeadlessFarm";
+            host.Name = worldConfig.HostName;
+            host.farmName.Value = worldConfig.FarmName;
+            Console.WriteLine($"[World] farmType={Game1.whichFarm} farmName={host.farmName.Value} host={host.Name} " +
+                              $"seed={Game1.uniqueIDForThisGame} startingCabins={Game1.startingCabins} cabinsSeparate={Game1.cabinsSeparate}");
             host.UniqueMultiplayerID = 99999999L;
             host.isCustomized.Value = true;
             host.gameVersion = Game1.version ?? targetVersion;
@@ -684,8 +691,9 @@ namespace HeadlessServer
                                     }
                                 }
 
-                                // If we have less than 4 farmhands, add a "New Farmhand" slot!
-                                if (availableList.Count < 4)
+                                // Add a "New Farmhand" slot while the selection list is below
+                                // the configured farmhand limit.
+                                if (availableList.Count < worldConfig.MaxFarmhands)
                                 {
                                     long newId = 11111111L;
                                     while (savedFarmhandCatalog.ContainsKey(newId) || availableList.Any(f => f.UniqueMultiplayerID == newId))
@@ -698,8 +706,8 @@ namespace HeadlessServer
                                     farmhand.UniqueMultiplayerID = newId;
                                     farmhand.isCustomized.Value = false;
                                     farmhand.gameVersion = Game1.version ?? targetVersion;
-                                    // Give every newly-created farmhand the standard starter parsnip seeds.
-                                    farmhand.Items.Add(ItemRegistry.Create("(O)472", 15));
+                                    // Give every newly-created farmhand the configured starter seeds.
+                                    GiveStarterParsnipSeeds(farmhand);
                                     
                                     availableList.Add(farmhand);
                                     Console.WriteLine($"Added new farmhand slot with ID: {newId}");
@@ -986,12 +994,8 @@ namespace HeadlessServer
                                             var farmer = incomingMsg.SourceFarmer;
                                              if (farmer != null && farmer.UniqueMultiplayerID != 99999999L && farmer.UniqueMultiplayerID != 0 && farmer.isCustomized.Value && !savedFarmerIds.Contains(farmer.UniqueMultiplayerID))
                                             {
-                                                // Ensure every newly-created farmhand carries the standard starter parsnip seeds.
-                                                if (!farmer.Items.Any(i => i != null && i.QualifiedItemId == "(O)472"))
-                                                {
-                                                    farmer.Items.Add(ItemRegistry.Create("(O)472", 15));
-                                                    Console.WriteLine($"Added starter parsnip seeds to farmhand {farmer.Name} ({farmer.UniqueMultiplayerID}).");
-                                                }
+                                                // Ensure every newly-created farmhand carries the configured starter seeds.
+                                                GiveStarterParsnipSeeds(farmer);
                                                 Console.WriteLine($"Farmer {farmer.Name} ({farmer.UniqueMultiplayerID}) completed customization. Saving...");
                                                 SaveFarmhand(farmer);
                                                 savedFarmerIds.Add(farmer.UniqueMultiplayerID);

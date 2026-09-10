@@ -43,6 +43,26 @@ namespace HeadlessServer
         // Vanilla drives the overnight network pump from the overnight worker. Keep the
         // headless main loop from concurrently entering the same game/network state.
 
+        /// <summary>
+        /// Hands a farmhand the configured starter seeds, unless it already carries them.
+        /// A configured count of 0 disables the hand-out entirely.
+        /// </summary>
+        private static void GiveStarterParsnipSeeds(Farmer farmhand)
+        {
+            int count = ServerConfig.Current.World.StarterParsnipSeeds;
+            if (count <= 0)
+            {
+                return;
+            }
+            if (farmhand.Items.Any(item => item != null && item.QualifiedItemId == "(O)472"))
+            {
+                return;
+            }
+
+            farmhand.Items.Add(ItemRegistry.Create("(O)472", count));
+            Console.WriteLine($"Added {count} starter parsnip seeds to farmhand {farmhand.Name} ({farmhand.UniqueMultiplayerID}).");
+        }
+
         private static void EnsureFarmhandHomesAndBeds(Farm farm)
         {
             foreach (var building in farm.buildings)
