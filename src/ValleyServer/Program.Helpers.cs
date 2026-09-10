@@ -275,10 +275,13 @@ namespace HeadlessServer
 
         private static void AdvanceHeadlessClock(long elapsedMilliseconds)
         {
+            // Configured pacing: real milliseconds that advance the in-game clock by ten
+            // minutes. Read per call so a single source of truth drives the whole loop.
+            long millisecondsPerTenMinutes = ServerConfig.Current.Simulation.MillisecondsPerTenMinutes;
             headlessClockAccumulatorMs += elapsedMilliseconds;
-            while (headlessClockAccumulatorMs >= HeadlessMillisecondsPerTenMinutes)
+            while (headlessClockAccumulatorMs >= millisecondsPerTenMinutes)
             {
-                headlessClockAccumulatorMs -= HeadlessMillisecondsPerTenMinutes;
+                headlessClockAccumulatorMs -= millisecondsPerTenMinutes;
                 int minutes = Game1.timeOfDay % 100 + 10;
                 int hours = Game1.timeOfDay / 100;
                 if (minutes >= 60)
@@ -538,7 +541,20 @@ namespace HeadlessServer
             Console.WriteLine("[HeadlessNewDay] Started vanilla overnight coroutine on background thread.");
         }
 
-        private static string savedFarmhandsPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "saved_farmhands");
+        /// <summary>
+        /// Directory holding the saved farmhand XML files. A relative configured path
+        /// resolves against the executable directory.
+        /// </summary>
+        private static string savedFarmhandsPath
+        {
+            get
+            {
+                string configured = ServerConfig.Current.Paths.SaveDirectory;
+                return Path.IsPathRooted(configured)
+                    ? configured
+                    : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configured);
+            }
+        }
         private static HashSet<long> savedFarmerIds = new HashSet<long>();
         // The authoritative catalog of every farmhand that has ever been created/saved,
         // used to populate the character-selection list. It is intentionally kept separate

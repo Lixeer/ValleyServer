@@ -17,11 +17,11 @@ namespace HeadlessServer
         public HeadlessContentManager(IServiceProvider serviceProvider, string rootDirectory)
             : base(serviceProvider, rootDirectory)
         {
-            // Content is not part of the repository. Resolve it from an explicit setting
-            // first, then from the published directory and common Steam locations. The old
-            // implementation only checked ./Content, which made a normal Steam install
-            // unusable unless files were manually copied beside the executable.
-            string? configuredPath = Environment.GetEnvironmentVariable("VALLEY_CONTENT_PATH");
+            // Content is not part of the repository. Resolve it from the configured path
+            // first, then from the published directory and the common Steam locations.
+            // ConfigLoader has already merged the VALLEY_CONTENT_PATH environment
+            // variable over config.json, so the configured value is authoritative here.
+            string? configuredPath = ServerConfig.Current.Paths.ContentPath;
             string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
             string?[] possiblePaths = new[]
@@ -51,7 +51,7 @@ namespace HeadlessServer
                 // location, but report the actionable configuration knob to the operator.
                 _CachedContentRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content"));
                 ResolvedContentRoot = _CachedContentRoot;
-                Console.WriteLine("[HeadlessContentManager] Content not found. Set VALLEY_CONTENT_PATH or install Content beside the server.");
+                Console.WriteLine("[HeadlessContentManager] Content not found. Set Paths.ContentPath in config.json (or VALLEY_CONTENT_PATH), or install Content beside the server.");
             }
 
             Console.WriteLine($"[HeadlessContentManager] Content path resolved to: {_CachedContentRoot}");

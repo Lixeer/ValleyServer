@@ -41,7 +41,6 @@ namespace HeadlessServer
         private static readonly ConcurrentQueue<IncomingMessage> deferredOvernightMessages = new();
         static readonly FieldInfo gamePlayerField = typeof(Game1).GetField("_player", BindingFlags.Static | BindingFlags.NonPublic)
             ?? throw new MissingFieldException(typeof(Game1).FullName, "_player");
-        const int HeadlessMillisecondsPerTenMinutes = 1000;
 
         internal static void ProcessDeferredOvernightMessages()
         {
