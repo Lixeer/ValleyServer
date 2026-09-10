@@ -131,6 +131,10 @@ namespace HeadlessServer
         {
             Console.WriteLine("Starting Headless Stardew Valley Server (New Farmhand Customization Stage)...");
 
+            // Resolve the effective configuration before any game state is mocked: the
+            // content manager and every world/network setting below read from it.
+            ConfigLoader.Load();
+
             // Load the platform-specific LZ4 native library bundled beside the server.
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string nativeLibraryName = OperatingSystem.IsWindows()
