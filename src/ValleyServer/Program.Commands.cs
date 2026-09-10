@@ -23,6 +23,13 @@ namespace HeadlessServer
                 usage: "help",
                 description: "List the available console commands.",
                 handler: _ => commandRegistry.PrintHelp()));
+
+            commandRegistry.Register(new ServerCommand(
+                name: "stop",
+                usage: "stop",
+                description: "Save every farmhand, disconnect clients and exit.",
+                handler: _ => RequestGracefulShutdown("the stop command"),
+                aliases: new[] { "shutdown", "quit" }));
         }
 
         /// <summary>

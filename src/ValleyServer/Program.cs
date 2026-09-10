@@ -616,21 +616,15 @@ namespace HeadlessServer
             RegisterBuiltInCommands();
             ConsoleCommandReader.Start();
 
-            using var shutdown = new CancellationTokenSource();
+            using CancellationTokenSource shutdown = shutdownRequest;
             Console.CancelKeyPress += (_, e) =>
             {
+                // Ctrl+C takes the same graceful path as the stop command, so an
+                // interrupted server still saves its farmhands.
                 e.Cancel = true;
-                if (!shutdown.IsCancellationRequested)
-                {
-                    shutdown.Cancel();
-                    Console.WriteLine("Shutdown requested; finishing queued messages...");
-                }
+                RequestGracefulShutdown("Ctrl+C");
             };
-            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
-            {
-                if (!shutdown.IsCancellationRequested)
-                    shutdown.Cancel();
-            };
+            AppDomain.CurrentDomain.ProcessExit += (_, _) => RequestGracefulShutdown("process exit");
 
             while (!shutdown.IsCancellationRequested)
             {
@@ -1162,6 +1156,10 @@ namespace HeadlessServer
                 }
                 Thread.Sleep(1);
             }
+
+            // The loop only ends after a shutdown request, so this is where the saving
+            // and socket teardown happen, on the thread that owns the game state.
+            PerformGracefulShutdown(server);
         }
 
     }
