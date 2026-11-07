@@ -1,0 +1,9 @@
+{
+  "Name": "ValleyWhale(大肥鱼种白饭 Blind Whale Farmer)分支",
+  "Author": "Lixeer",
+  "Version": "1.1.1",
+  "Description": "闭着眼睛也能种田：把游戏状态转成纯文本交给 DeepSeek，让它通过高层动作（寻路、用工具、种地、交互、购物、睡觉）来玩星露谷，不需要视觉模型。",
+  "UniqueID": "Lixeer.ValleyWhale",
+  "EntryDll": "ValleyWhale.dll",
+  "MinimumApiVersion": "4.0.0"
+}
