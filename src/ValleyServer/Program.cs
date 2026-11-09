@@ -47,8 +47,7 @@ namespace HeadlessServer
             Multiplayer? multiplayer = typeof(Game1).GetField("multiplayer", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(null) as Multiplayer;
             int processed = 0;
             while (deferredOvernightMessages.TryDequeue(out IncomingMessage? message))
-            {
-                try
+            {                try
                 {
                     // Detect the farmhand's barrier echo for removeItemsFromWorld. The master's
                     // _newDayAfterFade only sends the "farmEvent" synchronizer variable when
@@ -84,8 +83,7 @@ namespace HeadlessServer
                         }
                     }
                     if (message.MessageType is 14 or 31)
-                        Console.WriteLine(DescribeNewDayState("overnight-after-recv"));
-                }
+                        Console.WriteLine(DescribeNewDayState("overnight-after-recv"));                }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[Protocol][overnight-recv-error] type={message.MessageType}: {ex}");
@@ -133,6 +131,11 @@ namespace HeadlessServer
             // Resolve the effective configuration before any game state is mocked: the
             // content manager and every world/network setting below read from it.
             ConfigLoader.Load(args);
+
+            // Which world to play must be known before the world is built (static game state is
+            // injected exactly once), so the choice is made here rather than after startup.
+            SaveSelection.Resolve(ServerConfig.Current, canPrompt: !Console.IsInputRedirected);
+            SelectedWorldFolder = ServerConfig.Current.Paths.WorldSave;
 
             // Load the platform-specific LZ4 native library bundled beside the server.
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -289,6 +292,10 @@ namespace HeadlessServer
             // recalculates running from options.runButton. The graphics-free Options object
             // has no constructor, so initialize the input array that path dereferences.
             Game1.options.runButton = new[] { new InputButton(Keys.LeftShift) };
+            // Every other InputButton[] also keeps its initializer from the real constructor. Left
+            // null they break XmlSerializer whenever an Options object is deserialized, which meant
+            // the native save could never be read back. Restore them with their declared shapes.
+            InitializeOptionsInputArrays(Game1.options);
             Game1.options.ipConnectionsEnabled = true;
             Game1.options.enableFarmhandCreation = true;
             
@@ -458,10 +465,22 @@ namespace HeadlessServer
             }
             Console.WriteLine($"Vanilla locations initialized: count={locList.Count}, Town={Game1.getLocationFromName("Town")?.GetType().Name}, Mine={Game1.getLocationFromName("Mine")?.GetType().Name}");
 
+            // Villagers live in their home locations, so this has to run once the location catalog
+            // exists. Vanilla Game1.AddNPCs() reads Data/Characters and spawns everyone flagged
+            // SpawnIfMissing; without it the world had no villagers at all.
+            AddNpcsToWorld();
+
             host.currentLocation = farm;
+            // A Farmer built with new Farmer() keeps position (0,0), the map corner. Anything that
+            // spawns relative to the host (or copies its spot) would then land in the top-left
+            // corner, which is a solid tile on most farms and traps the client. Start the host on a
+            // walkable tile instead: the farm's own entry point, or its first free tile.
+            Point hostSpot = GetSafeSpawnPoint(farm);
+            host.Position = new Vector2(hostSpot.X * 64f, hostSpot.Y * 64f);
             Game1.currentLocation = farm;
             if (multiplayer != null)
                 multiplayer.locationRoot(farm);
+            Console.WriteLine($"Host placed at Farm ({hostSpot.X},{hostSpot.Y}).");
             Console.WriteLine($"Farm initialized: map={farm.mapPath.Value}, buildings={farm.buildings.Count}, objects={farm.objects.Count()}, terrain={farm.terrainFeatures.Count()}, clumps={farm.resourceClumps.Count}");
 
             // Run the headless instance as the authoritative multiplayer host.  This is
@@ -475,18 +494,50 @@ namespace HeadlessServer
             Game1.timeOfDay = 600;
             Game1.gameTimeInterval = 0;
             Game1.netWorldState.Value.UpdateFromGame1();
-            EnsureFarmhandHomesAndBeds(farm);
 
-            // Load saved farmhands from disk on startup
-            LoadSavedFarmhands();
+            // Restore the world the server saved last time it stopped. The native save carries
+            // objects, tilled soil, crops, buildings and the calendar; the world core below is the
+            // fallback for saves written before the native save existed.
+            bool newWorld = SelectedWorldFolder.Equals(SaveSelection.NewWorldChoice, StringComparison.OrdinalIgnoreCase);
+            bool nativeLoaded = LoadNativeGame();
+            if (nativeLoaded)
+            {
+                // The native save is authoritative and already carries the farmhands.
+            }
+            else if (newWorld)
+            {
+                // A world explicitly asked to be new must not inherit the calendar or the farmhands
+                // of whatever the server played last time.
+                Console.WriteLine("[World] New world: ignoring world.json and the saved farmhand files.");
+                Game1.year = 1;
+                Game1.currentSeason = "spring";
+                Game1.dayOfMonth = 1;
+                Game1.netWorldState.Value.UpdateFromGame1();
+            }
+            else
+            {
+                RestoreWorldCore();
+                Game1.netWorldState.Value.UpdateFromGame1();
+                EnsureFarmhandHomesAndBeds(farm);
+                EnsureSaveDirectoryWritable();
+                LoadSavedFarmhands();
+            }
             // Loading the building definitions creates the cabin interior and its starter bed.
             // Do this after the farm is registered, since Cabin's constructor queries Game1.getFarm().
             EnsureFarmhandHomesAndBeds(farm);
 
+            // Villagers only receive today's schedule inside the overnight rollover
+            // (Game1's newDay block: location.DayUpdate + npc.dayUpdate). A loaded native save
+            // restores Calendar but never runs that pass, so every villager kept an empty
+            // Schedule all day and stood in its bedroom forever. Replay the villager half of
+            // that rollover once at startup.
+            InitializeVillagerDay();
+            LogWorldSnapshot("startup", force: true);
+
             // The location update path queries the music system (getMusicTrackName via
             // isMusicContextActiveButNotPlaying). Its backing dictionary is an instance
             // field on the Game1 singleton that our uninitialized instance never created,
-            // so every UpdateWhenCurrentLocation threw NRE partway through 鈥?after debris
+            // so every UpdateWhenCurrentLocation threw NRE partway through - after debris
             // processing but before terrain features and events. Initialize it so the
             // update completes resource-free; with an empty dictionary the track query
             // resolves to "none" and no audio is ever requested.
@@ -722,6 +773,11 @@ namespace HeadlessServer
                                         
                                         foreach (var fh in availableList)
                                         {
+                                            // The farmhand the client picks comes straight out of this
+                                            // payload, so its location references must be valid for the
+                                            // current world before it is serialized.
+                                            SanitizeFarmhandLocations(fh);
+
                                             var farmhandRoot = new NetFarmerRoot(fh)
                                             {
                                                 Serializer = SaveSerializer.GetSerializer(typeof(Farmer))
@@ -742,7 +798,7 @@ namespace HeadlessServer
                             }
                             else if (status == NetConnectionStatus.Disconnected || status == NetConnectionStatus.None)
                             {
-                                Console.WriteLine($"Client {inc.SenderEndPoint} disconnected. Saving all active farmhands...");
+                                Console.WriteLine($"Client {inc.SenderEndPoint} disconnected. Saving all active farmhands (fallback; the authoritative save runs at the nightly day roll)...");
                                 SaveAllActiveFarmhands();
 
                                 // Clean up connection mapping
@@ -836,7 +892,12 @@ namespace HeadlessServer
 
                                          // Ensure the farmhand is bound to a cabin before any spawn/pass-out handling.
                                          // This must happen after registration so NetFarmerRef can resolve it.
-                                         EnsureFarmhandHomesAndBeds(Game1.getFarm());
+                                         // Vanilla does the same in GameServer.checkFarmhandRequest; without it
+                                         // the farmhand keeps the default homeLocation ("FarmHouse") and the
+                                         // client spawns inside the host's bedroom / at the map corner.
+                                         PrepareFarmhandForJoin(clientFarmer);
+                                         if (Game1.getLocationFromName(clientFarmer.homeLocation.Value) is FarmHouse joinHome && joinHome.GetPlayerBed() == null)
+                                             joinHome.furniture.Add(new BedFurniture(BedFurniture.DEFAULT_BED_INDEX, new Vector2(9f, 8f)));
 
 
                                          // A transport-level Connected status isn't an active player yet. Only
@@ -854,8 +915,43 @@ namespace HeadlessServer
                                              Console.WriteLine($"[HeadlessClock] Resumed: first active farmhand {newClientId} completed handshake.");
                                          }
 
+                                         // Send the farmhand's own home BEFORE ServerIntroduction.
+                                         // The client runs setUpGame() -> BedFurniture.ApplyWakeUpPosition()
+                                         // the moment it receives message 1, and that resolves the farmer's
+                                         // homeLocation. If the cabin has not arrived yet the lookup fails
+                                         // ("Required location 'FarmHouse...' not found") and the client
+                                         // falls back to the map's fixed spot instead of its bed.
+                                         if (Game1.getLocationFromName(clientFarmer.homeLocation.Value) is GameLocation joinHomeLocation)
+                                         {
+                                             try
+                                             {
+                                                 var homeRoot = multiplayer?.locationRoot(joinHomeLocation);
+                                                 if (homeRoot != null)
+                                                 {
+                                                     byte[] homeBytes = WriteObjectFullBytes(homeRoot, newClientId);
+                                                     // force_current: the client must create this location
+                                                     // before ServerIntroduction runs its wake-up, which
+                                                     // resolves homeLocation/lastSleepLocation by name.
+                                                     var homeMsg = new OutgoingMessage(3, Game1.player.UniqueMultiplayerID, new object[] { true, homeBytes });
+                                                     var netHomeMsg = server.CreateMessage();
+                                                     MockLidgrenMessageUtils.WriteMessage(homeMsg, netHomeMsg);
+                                                     server.SendMessage(netHomeMsg, inc.SenderConnection, NetDeliveryMethod.ReliableOrdered);
+                                                     Console.WriteLine($"Sent home location '{joinHomeLocation.NameOrUniqueName}' before ServerIntroduction.");
+                                                      Console.WriteLine($"[Send3] home '{joinHomeLocation.NameOrUniqueName}' bytes={homeBytes.Length} force_current=True peer={newClientId}");
+                                                      LogWorldSnapshot($"send-home:{joinHomeLocation.NameOrUniqueName}", force: true);
+                                                 }
+                                             }
+                                             catch (Exception homeEx)
+                                             {
+                                                 Console.WriteLine($"[Join][WARN] Could not send the home location before the introduction: {homeEx.Message}");
+                                             }
+                                         }
+
                                          // Send ServerIntroduction (Message 1)
                                          Console.WriteLine("Sending ServerIntroduction (Message 1)...");
+                                         Console.WriteLine($"[Join] {clientFarmer.Name}: location='{clientFarmer.currentLocation?.NameOrUniqueName}', "
+                                             + $"tile=({(int)(clientFarmer.Position.X / 64f)},{(int)(clientFarmer.Position.Y / 64f)}), "
+                                             + $"home='{clientFarmer.homeLocation.Value}', lastSleep='{clientFarmer.lastSleepLocation.Value}'.");
                                          byte[] hostBytes = WriteObjectFullBytes(Game1.serverHost, newClientId);
                                          byte[] teamBytes = WriteObjectFullBytes(Game1.player.teamRoot, newClientId);
                                          byte[] worldStateBytes = WriteObjectFullBytes(Game1.netWorldState, newClientId);
@@ -880,11 +976,22 @@ namespace HeadlessServer
                                              ?? throw new InvalidOperationException($"Location '{location.NameOrUniqueName}' has no multiplayer NetRoot.");
                                          byte[] locationBytes = WriteObjectFullBytes(locRoot, newClientId);
 
-                                         var locMsg = new OutgoingMessage(3, Game1.player.UniqueMultiplayerID, new object[] { true, locationBytes });
+                                         // force_current moves the client's current location. The farmhand's
+                                         // wake-up spot is fixed by ApplyWakeUpPosition during the
+                                         // ServerIntroduction we just sent, so forcing "Farm" here undid it and
+                                         // dropped every farmhand on the farm's edge instead of their bed.
+                                         // Only force it when the farmhand is not inside a building.
+                                         bool farmhandIndoors = clientFarmer.currentLocation is FarmHouse;
+                                         bool forceFarm = !farmhandIndoors;
+                                         Console.WriteLine($"[Join] {(forceFarm ? "Forcing" : "Not forcing")} 'Farm' as current location (farmhand location='{clientFarmer.currentLocation?.NameOrUniqueName}').");
+
+                                         var locMsg = new OutgoingMessage(3, Game1.player.UniqueMultiplayerID, new object[] { forceFarm, locationBytes });
                                          var netLocMsg = server.CreateMessage();
                                          MockLidgrenMessageUtils.WriteMessage(locMsg, netLocMsg);
                                          server.SendMessage(netLocMsg, inc.SenderConnection, NetDeliveryMethod.ReliableOrdered);
                                          Console.WriteLine("Sent LocationIntroduction!");
+                                         Console.WriteLine($"[Send3] farm '{location?.NameOrUniqueName}' bytes={locationBytes.Length} force_current={forceFarm} peer={newClientId}");
+                                         LogWorldSnapshot("send-farm", force: true);
 
                                          // Introduce new client to existing clients, and vice versa
                                          foreach (var rootKvp in Game1.otherFarmers.Roots)
@@ -930,6 +1037,9 @@ namespace HeadlessServer
                                                 : 0;
 
                                             var farmer = incomingMsg.SourceFarmer;
+                                            Console.WriteLine($"[Warp5] farmer={farmer?.UniqueMultiplayerID} loc='{name}' tile=({x},{y}) "
+                                                + $"isStructure={isStructure} forcedEvent={warpingForForcedRemoteEvent} needsLocationInfo={needsLocationInfo} "
+                                                + $"serverLoc='{farmer?.currentLocation?.NameOrUniqueName}'");
                                             if (farmer != null && needsLocationInfo)
                                             {
                                                 // Match GameServer.warpFarmer: require a canonical location,
@@ -952,6 +1062,8 @@ namespace HeadlessServer
                                                 MockLidgrenMessageUtils.WriteMessage(locMsg, netLocMsg);
                                                 server.SendMessage(netLocMsg, inc.SenderConnection, NetDeliveryMethod.ReliableOrdered);
                                                 Console.WriteLine($"Warp {farmer.UniqueMultiplayerID}: {location.NameOrUniqueName} ({location.GetType().Name}) at {x},{y}, facing={facingDirection}, forcedEvent={warpingForForcedRemoteEvent}; sent canonical location root.");
+                                                Console.WriteLine($"[Send3] warp '{location.NameOrUniqueName}' bytes={locationBytes.Length} force_current=False peer={farmer.UniqueMultiplayerID}");
+                                                LogWorldSnapshot($"send-warp:{location.NameOrUniqueName}", force: true);
                                             }
                                         }
                                         catch (Exception ex)
@@ -968,11 +1080,18 @@ namespace HeadlessServer
                                             // "sleep" check actually exists on the server after each such message.
                                             bool isReadyMsg = incomingMsg.MessageType == 31;
                                             var mp = typeof(Game1).GetField("multiplayer", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(null) as Multiplayer;
-                                            bool deferToOvernightWorker = headlessNewDayActive && incomingMsg.MessageType is 14 or 31;
+                                            // While the day roll runs, every incoming message belongs to
+                                            // the overnight worker: it is the only thread allowed to
+                                            // touch the shared multiplayer state (vanilla's render loop
+                                            // is blocked for the same reason). Handing them to
+                                            // mp.processIncomingMessage() from here would put the two
+                                            // threads back in each other's way.
+                                            bool deferToOvernightWorker = headlessNewDayActive;
                                             if (deferToOvernightWorker)
                                             {
                                                 deferredOvernightMessages.Enqueue(ProtocolMessages.Clone(incomingMsg));
-                                                Console.WriteLine($"[Protocol][deferred] type={incomingMsg.MessageType} queued={deferredOvernightMessages.Count}");
+                                                if (incomingMsg.MessageType is 14 or 31)
+                                                    Console.WriteLine($"[Protocol][deferred] type={incomingMsg.MessageType} queued={deferredOvernightMessages.Count}");
                                             }
                                             else if (incomingMsg.MessageType != 19)
                                             {
@@ -993,8 +1112,12 @@ namespace HeadlessServer
                                                 // Ensure every newly-created farmhand carries the configured starter seeds.
                                                 GiveStarterParsnipSeeds(farmer);
                                                 Console.WriteLine($"Farmer {farmer.Name} ({farmer.UniqueMultiplayerID}) completed customization. Saving...");
-                                                SaveFarmhand(farmer);
-                                                savedFarmerIds.Add(farmer.UniqueMultiplayerID);
+                                                // Only remember the farmhand as persisted once the file is really there,
+                                                // otherwise a failed write would suppress every later retry.
+                                                if (SaveFarmhand(farmer))
+                                                    savedFarmerIds.Add(farmer.UniqueMultiplayerID);
+                                                else
+                                                    Console.WriteLine($"[Save][ERROR] Farmhand {farmer.Name} ({farmer.UniqueMultiplayerID}) was NOT persisted; will retry on disconnect/day roll.");
                                             }
 
                                             // Rebroadcast client broadcast messages to other clients
@@ -1088,6 +1211,15 @@ namespace HeadlessServer
                         UpdateHeadlessLocations(simulationTime);
                     }
 
+                    // Report any change of the farm/farmhouse contents once a second. A wipe of
+                    // objects/terrain/buildings or of a house's furniture is otherwise only
+                    // noticed by a player standing in the wrong place.
+                    if (currentTime - lastWorldSnapshotMs >= 1000)
+                    {
+                        lastWorldSnapshotMs = currentTime;
+                        LogWorldSnapshot("tick");
+                    }
+
                     try
                     {
                      var mp = typeof(Game1).GetField("multiplayer", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(null) as Multiplayer;
@@ -1095,6 +1227,15 @@ namespace HeadlessServer
                      {
                          if (headlessNewDayActive)
                          {
+                             // Only the overnight worker may pump the network while the day roll
+                             // runs. NetSynchronizer.barrier()/isBarrierReady() call processMessages()
+                             // (UpdateLate -> root deltas -> UpdateEarly) from inside the iterator, so
+                             // the worker keeps itself fed, and vanilla's Game1.Update returns early
+                             // whenever _newDayTask is set (Game1.cs:3822-3856) instead of pumping from
+                             // the main thread. Pumping from here as well let two threads mutate the
+                             // shared Multiplayer/ReadySynchronizer state at the same time, which
+                             // dropped or double-applied ready replies and farmer deltas - the reason
+                             // farmhands woke up in a building they never slept in.
                              if (currentTime - lastNewDayMonitorMs >= 1000)
                              {
                                  lastNewDayMonitorMs = currentTime;
@@ -1104,10 +1245,19 @@ namespace HeadlessServer
                          else
                          {
                              mp.UpdateEarly();
-                             Game1.dedicatedServer?.Tick();
+                             // Vote on the sleep check before the vanilla dedicated server inspects it,
+                             // then stand down from Tick() while the handshake is in flight:
+                             // DedicatedServer.HostSleepInBed() would otherwise open its own
+                             // ReadyCheckDialog and roll the day a second time behind our back.
+                             PrepareHeadlessHostForSleep();
+                             bool sleepHandshakeInFlight = hostSleepTriggered
+                                 || (Game1.netReady?.GetNumberReady("sleep") ?? 0) > 0;
+                             if (!sleepHandshakeInFlight)
+                             {
+                                 Game1.dedicatedServer?.Tick();
+                             }
                              Game1.netReady?.Update();
                              EnsureHeadlessDedicatedHostFlag();
-                             PrepareHeadlessHostForSleep();
                              PumpHeadlessNewDayProcess();
                              mp.UpdateLate();
                          }

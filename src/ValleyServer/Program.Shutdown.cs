@@ -64,10 +64,17 @@ namespace HeadlessServer
 
             try
             {
+                Console.WriteLine("[Shutdown] Writing the native save...");
+                if (SaveNativeGame())
+                    Console.WriteLine("[Shutdown] Native save written.");
+                else
+                    Console.WriteLine("[Shutdown][ERROR] Native save FAILED; the world may be lost.");
+
                 if (clientConnections.Count > 0)
                 {
                     Console.WriteLine($"[Shutdown] Saving {clientConnections.Count} active farmhand(s)...");
-                    SaveAllActiveFarmhands();
+                    if (SaveAllActiveFarmhands() > 0)
+                        Console.WriteLine("[Shutdown][ERROR] Some farmhands could not be saved; their progress will be lost.");
                 }
                 else
                 {
@@ -77,7 +84,7 @@ namespace HeadlessServer
             catch (Exception ex)
             {
                 // A failed save must not stop the server from releasing its socket.
-                Console.WriteLine($"[Shutdown] Saving farmhands failed: {ex}");
+                Console.WriteLine($"[Shutdown] Saving failed: {ex}");
             }
 
             try

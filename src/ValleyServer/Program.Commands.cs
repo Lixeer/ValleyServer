@@ -25,11 +25,68 @@ namespace HeadlessServer
                 handler: _ => commandRegistry.PrintHelp()));
 
             commandRegistry.Register(new ServerCommand(
+                name: "saves",
+                usage: "saves",
+                description: "List the worlds available to load, and which one this run uses.",
+                handler: _ => PrintSaves()));
+
+            commandRegistry.Register(new ServerCommand(
+                name: "save",
+                usage: "save",
+                description: "Write a native save now and report the resulting file path.",
+                handler: _ =>
+                {
+                    Console.WriteLine("[Commands] Saving...");
+                    Console.WriteLine(SaveNativeGame()
+                        ? $"[Commands] Save finished: {nativeSaveFile}"
+                        : "[Commands][ERROR] Save failed; see the [Save] lines above.");
+                }));
+
+            commandRegistry.Register(new ServerCommand(
+                name: "world",
+                usage: "world",
+                description: "Print the object/terrain/building/furniture counts of the farm and of every farmhouse.",
+                handler: _ => LogWorldSnapshot("command", force: true)));
+
+            commandRegistry.Register(new ServerCommand(
+                name: "resync",
+                usage: "resync",
+                description: "Re-send the full farm and farmhouse state to every connected farmhand.",
+                handler: _ => ResyncLocationsToClients("command")));
+
+            commandRegistry.Register(new ServerCommand(
                 name: "stop",
                 usage: "stop",
                 description: "Save every farmhand, disconnect clients and exit.",
                 handler: _ => RequestGracefulShutdown("the stop command"),
                 aliases: new[] { "shutdown", "quit" }));
+        }
+
+        /// <summary>
+        /// Lists the worlds on disk. The running world cannot be switched in place, because the
+        /// game's static world state is injected once per process, so this reports the choice and
+        /// how to act on it instead of pretending a reload happened.
+        /// </summary>
+        private static void PrintSaves()
+        {
+            Console.WriteLine("Worlds available to load:");
+            var saves = SaveSelection.ListSaves();
+            if (saves.Count == 0)
+            {
+                Console.WriteLine("  (none)");
+            }
+            else
+            {
+                for (int i = 0; i < saves.Count; i++)
+                {
+                    string marker = string.Equals(saves[i].FolderName, SelectedWorldFolder, StringComparison.OrdinalIgnoreCase) ? "  <- in use" : "";
+                    Console.WriteLine($"  [{i + 1}] {saves[i].Describe()}{marker}");
+                }
+            }
+
+            Console.WriteLine($"  Current run: {(string.IsNullOrWhiteSpace(SelectedWorldFolder) ? "(newest save)" : SelectedWorldFolder)}");
+            Console.WriteLine("  A world is chosen at startup. Change Paths.WorldSave in config.json,");
+            Console.WriteLine("  or start with '--save <folder>' / '--save new', then restart the server.");
         }
 
         /// <summary>

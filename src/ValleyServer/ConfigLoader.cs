@@ -56,6 +56,24 @@ namespace HeadlessServer
             return config;
         }
 
+        /// <summary>
+        /// Persists the current configuration, so a choice made at the startup prompt survives the
+        /// next start instead of being overwritten by the previous file contents.
+        /// </summary>
+        public static bool Save()
+        {
+            try
+            {
+                File.WriteAllText(ConfigPath, JsonSerializer.Serialize(ServerConfig.Current, WriteOptions));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Config][WARN] Could not write {ConfigPath}: {ex.Message}");
+                return false;
+            }
+        }
+
         private static ServerConfig LoadOrCreate(string path)
         {
             if (!File.Exists(path))

@@ -1,0 +1,26 @@
+﻿{
+    "Network":  {
+                    "Port":  24642,
+                    "MaxConnections":  16,
+                    "ConnectionTimeoutSeconds":  30,
+                    "PingIntervalSeconds":  5,
+                    "MaximumTransmissionUnit":  1200
+                },
+    "World":  {
+                  "FarmType":  0,
+                  "FarmName":  "HeadlessFarm",
+                  "HostName":  "Host",
+                  "Seed":  0,
+                  "StartingCabins":  4,
+                  "CabinsSeparate":  false,
+                  "MaxFarmhands":  4,
+                  "StarterParsnipSeeds":  15
+              },
+    "Simulation":  {
+                       "MillisecondsPerTenMinutes":  8000
+                   },
+    "Paths":  {
+                  "ContentPath":  "",
+                  "SaveDirectory":  "saved_farmhands"
+              }
+}

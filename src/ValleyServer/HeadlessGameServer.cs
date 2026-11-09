@@ -19,6 +19,7 @@ namespace HeadlessServer
     {
         private NetServer _netServer;
         private Dictionary<long, NetConnection> _clientConnections;
+        private bool teamDeltaSuppressionLogged;
 
         public HeadlessGameServer(NetServer netServer, Dictionary<long, NetConnection> clientConnections)
         {
@@ -64,6 +65,25 @@ namespace HeadlessServer
 
         public void sendMessage(long peerId, OutgoingMessage message)
         {
+            // Message 13 is the FarmerTeam root delta. Clients could not read ours: SMAPI logs
+            // "InvalidOperationException: Failed reading FarmerTeam field 'FarmerTeam:
+            // globalInventories' ---> EndOfStreamException: Unable to read beyond the end of the
+            // stream" while parsing the team root, which leaves that client's netcode state out of
+            // step and applies the rest of the sync stream to the wrong values. A farmhand does not
+            // need the host's team root after the server introduction (special orders, shared Qi
+            // inventories and mutexes are not part of the headless loop), and the introduction
+            // already hands over the complete root, so dropping this delta is both safe and the
+            // cleanest way to keep the stream predictable.
+            if (message.MessageType == 13)
+            {
+                if (!teamDeltaSuppressionLogged)
+                {
+                    teamDeltaSuppressionLogged = true;
+                    Console.WriteLine("[Net] Dropping FarmerTeam deltas (message 13); farmhands keep the team root sent during the server introduction.");
+                }
+                return;
+            }
+
             if (_clientConnections.TryGetValue(peerId, out var conn))
             {
                 if (message.MessageType is 14 or 30 or 31)
