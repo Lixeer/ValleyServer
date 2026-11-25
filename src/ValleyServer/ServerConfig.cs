@@ -103,6 +103,19 @@ namespace HeadlessServer
             /// against the executable directory.
             /// </summary>
             public string SaveDirectory { get; set; } = "saved_farmhands";
+
+            /// <summary>
+            /// Save folder name (the <c>&lt;name&gt;_&lt;id&gt;</c> folder under the game's Saves
+            /// directory) to load on start. Empty means "newest save", and <c>new</c> forces a new
+            /// world. The startup prompt writes the operator's choice here.
+            /// </summary>
+            public string WorldSave { get; set; } = "";
+
+            /// <summary>
+            /// Whether to ask which world to load when the server starts with an interactive
+            /// console. Set to false for unattended hosts, where <see cref="WorldSave"/> decides.
+            /// </summary>
+            public bool AskForWorldOnStartup { get; set; } = true;
         }
     }
 }
